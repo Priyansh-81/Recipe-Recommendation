@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommendations - Recipe App</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Recommendations</h1>
+        <nav>
+            <ul>
+                <li><a href="home.html">Home</a></li>
+                <li><a href="recipe-listing.html">Search Recipes</a></li>
+                <li><a href="favorites.html">Favorites</a></li>
+                <li><a href="recommendations.html">Recommendations</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="logout.html">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="recommendations">
+            <h2>Recommended Recipes for You</h2>
+            <div id="recommendationsContainer">
+                <p>Loading recommendations...</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function loadRecommendations() {
+            // Placeholder data (this would be fetched from the backend)
+            let recommendations = [
+                { id: 1, name: "Grilled Salmon", score: 9.2, cuisine: "Seafood", difficulty: "Medium" },
+                { id: 2, name: "Mango Smoothie", score: 8.7, cuisine: "Beverage", difficulty: "Easy" },
+                { id: 3, name: "Quinoa Salad", score: 9.0, cuisine: "Healthy", difficulty: "Easy" }
+            ];
+
+            let container = document.getElementById("recommendationsContainer");
+            container.innerHTML = ""; 
+
+            if (recommendations.length === 0) {
+                container.innerHTML = "<p>No recommendations available yet.</p>";
+                return;
+            }
+
+            recommendations.forEach(recipe => {
+                let div = document.createElement("div");
+                div.classList.add("recommendation-item");
+                div.innerHTML = `
+                    <h3>${recipe.name}</h3>
+                    <p><strong>Cuisine:</strong> ${recipe.cuisine}</p>
+                    <p><strong>Difficulty:</strong> ${recipe.difficulty}</p>
+                    <p><strong>Score:</strong> ${recipe.score.toFixed(1)}/10</p>
+                    <button onclick="addToFavorites(${recipe.id})">Add to Favorites</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function addToFavorites(recipeId) {
+            alert("Recipe added to favorites!");
+            loadRecommendations(); // Refresh the list
+        }
+
+        window.onload = loadRecommendations;
+    </script>
+    <script src="/frontend/assets/js/recommendation.js"></script>
+</body>
+</html>

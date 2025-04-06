@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Details</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1 id="recipeName">Loading...</h1>
+        <nav>
+            <ul>
+                <li><a href="home.html">Home</a></li>
+                <li><a href="recipe-listing.html">Search Recipes</a></li>
+                <li><a href="favorites.html">Favorites</a></li>
+                <li><a href="recommendations.html">Recommendations</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="logout.html">Logout</a></li>
+            </ul>
+    </header>
+    <div class="recipe-details">
+        <p><strong>Cuisine:</strong> <span id="cuisine"></span></p>
+        <p><strong>Diet:</strong> <span id="dietType"></span></p>
+        <p><strong>Difficulty:</strong> <span id="difficulty"></span></p>
+        <p><strong>Cooking Time:</strong> <span id="cookingTime"></span> mins</p>
+        <p><strong>Ingredients:</strong> <span id="ingredients"></span></p>
+        <p><strong>Instructions:</strong> <span id="instructions"></span></p>
+        <button id="backto">Back to Recipes</button>
+    </div>
+
+    <script>
+        document.getElementById("backto").onclick = function () {
+            window.location.href = "recipe-listing.html";
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const recipeID = urlParams.get("id");
+
+            if (recipeID) {
+                fetch(`http://localhost:5001/api/recipes/${recipeID}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error("Failed to fetch recipe details");
+                        return response.json();
+                    })
+                    .then(recipe => {
+                        document.querySelector("#recipeName").textContent = recipe.Name || "Recipe Details";
+                        document.querySelector("#cuisine").textContent = recipe.Cuisine || "Unknown";
+                        document.querySelector("#dietType").textContent = recipe.DietType || "N/A";
+                        document.querySelector("#difficulty").textContent = recipe.Difficulty || "N/A";
+                        document.querySelector("#cookingTime").textContent = recipe.CookingTime || "Unknown";
+                        document.querySelector("#ingredients").textContent = recipe.Ingredients || "No ingredients listed.";
+                        document.querySelector("#instructions").textContent = recipe.Instructions || "No instructions provided.";
+                        
+                        // Set the page title dynamically
+                        document.title = (recipe.Name ? recipe.Name + " - Recipe Details" : "Recipe Details");
+                    })
+                    .catch(error => console.error("Error fetching recipe details:", error));
+            } else {
+                console.error("No recipe ID found in the URL.");
+            }
+        });
+    </script>
+</body>
+</html>

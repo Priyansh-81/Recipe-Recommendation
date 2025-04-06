@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Ingredients</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>My Ingredients</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="recipes.html">Recipes</a></li>
+                <li><a href="favorites.html">Favorites</a></li>
+                <li><a href="recommendations.html">Recommendations</a></li>
+                <li><a href="profile.html">Profile</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="ingredient-form">
+            <h2>Add Ingredient to My Inventory</h2>
+            <form id="userIngredientForm">
+                <label for="ingredientSelect">Select Ingredient:</label>
+                <select id="ingredientSelect">
+                    <option value="Tomato">Tomato</option>
+                    <option value="Onion">Onion</option>
+                    <option value="Garlic">Garlic</option>
+                    <option value="Chicken">Chicken</option>
+                </select>
+
+                <label for="ingredientQuantity">Quantity:</label>
+                <input type="number" id="ingredientQuantity" required>
+
+                <button type="submit">Add to My Ingredients</button>
+            </form>
+        </section>
+
+        <section class="ingredient-list">
+            <h2>My Ingredients</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Quantity</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userIngredientTable">
+                    <!-- User's ingredient list will be displayed here -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById("userIngredientForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const ingredient = document.getElementById("ingredientSelect").value;
+            const quantity = document.getElementById("ingredientQuantity").value;
+
+            const tableBody = document.getElementById("userIngredientTable");
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${ingredient}</td>
+                <td>${quantity}</td>
+                <td><button onclick="removeIngredient(this)">Remove</button></td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        function removeIngredient(button) {
+            button.parentElement.parentElement.remove();
+        }
+    </script>
+
+<script src="../assets/js/ingredient.js"></script>
+</body>
+</html>

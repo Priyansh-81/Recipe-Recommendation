@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Recipe App</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Profile</h1>
+        <nav>
+            <ul>
+                <li><a href="home.html">Home</a></li>
+                <li><a href="recipe-listing.html">Search Recipes</a></li>
+                <li><a href="favorites.html">Favorites</a></li>
+                <li><a href="recommendations.html">Recommendations</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="logout.html">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="profile-container">
+            <h2>User Profile</h2>
+            <div class="profile-info">
+                <p><strong>Name:</strong> <span id="userName">John Doe</span></p>
+                <p><strong>Email:</strong> <span id="userEmail">johndoe@example.com</span></p>
+                <p><strong>Dietary Preferences:</strong> <span id="userPreferences">Vegetarian</span></p>
+            </div>
+
+            <h3>Manage Your Account</h3>
+            <button onclick="toggleEditForm()">Edit Profile</button>
+            <button onclick="deleteAccount()">Delete Account</button>
+
+            <div id="editProfileForm" style="display:none;">
+                <h3>Edit Profile</h3>
+                <form id="updateProfileForm">
+                    <label for="profileName">Name:</label>
+                    <input type="text" id="profileName" required><br><br>
+                    <label for="profileEmail">Email:</label>
+                    <input type="email" id="profileEmail" required><br><br>
+                    <label for="profilePreferences">Dietary Preferences:</label>
+                    <input type="text" id="profilePreferences" required><br><br>
+                    <button type="submit">Save Changes</button>
+                </form>
+                <div id="profileMessage"></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            loadUserProfile();
+
+            document.getElementById("updateProfileForm").addEventListener("submit", function (event) {
+                event.preventDefault();
+                updateUserProfile();
+            });
+        });
+
+        
+
+        function loadUserProfile() {
+            // Replace this with actual API call
+            const userData = {
+                name: "John Doe",
+                email: "john.doe@example.com",
+                preferences: "Vegetarian, Low-carb"
+            };
+
+            // Display the user data on the page
+            document.getElementById("userName").textContent = userData.name;
+            document.getElementById("userEmail").textContent = userData.email;
+            document.getElementById("userPreferences").textContent = userData.preferences;
+            
+            // Pre-fill the edit form fields
+            document.getElementById("profileName").value = userData.name;
+            document.getElementById("profileEmail").value = userData.email;
+            document.getElementById("profilePreferences").value = userData.preferences;
+        }
+
+        // Function to toggle the Edit Profile form visibility
+        function toggleEditForm() {
+            const editForm = document.getElementById("editProfileForm");
+            if (editForm.style.display === "none" || editForm.style.display === "") {
+                editForm.style.display = "block";
+            } else {
+                editForm.style.display = "none";
+            }
+        }
+
+        // Function to update the user profile details
+        function updateUserProfile() {
+            const updatedName = document.getElementById("profileName").value;
+            const updatedEmail = document.getElementById("profileEmail").value;
+            const updatedPreferences = document.getElementById("profilePreferences").value;
+
+            // Simulated API request (replace with actual fetch call)
+            console.log("Updating profile:", {
+                name: updatedName,
+                email: updatedEmail,
+                preferences: updatedPreferences
+            });
+
+            // Simulate success message
+            document.getElementById("profileMessage").innerText = "Profile updated successfully!";
+            document.getElementById("profileMessage").style.color = "green";
+            
+            // Optionally, hide the edit form after saving
+            toggleEditForm();
+        }
+
+        // Function to delete the user account
+        function deleteAccount() {
+            if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+                // Simulate API request (replace with actual fetch call)
+                console.log("Account deletion process initiated.");
+
+                // Simulate a successful deletion
+                alert("Your account has been deleted.");
+                window.location.href = "logout.html"; // Redirect to logout page
+            }
+        }
+    </script>
+
+    <script src="../assets/js/profile.js"></script>
+</body>
+</html>

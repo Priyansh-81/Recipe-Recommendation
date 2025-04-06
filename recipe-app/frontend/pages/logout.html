@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logout</title>
+    <link rel="stylesheet" href="/frontend/assets/css/indexstyle.css">
+    <style>
+        /* Background Styling */
+        body {
+            background: linear-gradient(to right, #fbc2eb, #a6c1ee);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Centered Logout Container */
+        .auth-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 350px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* Fade-in Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Heading */
+        .auth-container h2 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Logout Button */
+        #logoutBtn {
+            width: 100%;
+            padding: 14px;
+            background-color: #ff6f61;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s;
+            margin-top: 15px;
+        }
+
+        #logoutBtn:hover {
+            background-color: #e64a45;
+            transform: scale(1.05);
+        }
+
+        /* Cancel Link */
+        .auth-links {
+            margin-top: 15px;
+        }
+
+        .auth-links a {
+            color: #ff6f61;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 10px;
+            display: inline-block;
+            transition: color 0.3s;
+        }
+
+        .auth-links a:hover {
+            text-decoration: underline;
+            color: #e64a45;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Logout</h2>
+        <p>Are you sure you want to logout?</p>
+        <button id="logoutBtn">Logout</button>
+        
+    </div>
+
+    <script>
+        document.getElementById("logoutBtn").addEventListener("click", function() {
+            // Remove session storage or local storage data
+            localStorage.removeItem("userToken"); // If you're using JWT
+            sessionStorage.clear(); // Clears all session storage data
+
+            // Smooth transition before redirecting
+            document.querySelector(".auth-container").style.opacity = "0";
+            setTimeout(() => {
+                window.location.href = "../index.html"; // Redirect to login page
+            }, 500);
+        });
+    </script>
+</body>
+</html>

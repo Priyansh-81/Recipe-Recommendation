@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorites - Recipe App</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Favorites</h1>
+        <nav>
+            <ul>
+                <li><a href="home.html">Home</a></li>
+                <li><a href="recipe-listing.html">Search Recipes</a></li>
+                <li><a href="favorites.html">Favorites</a></li>
+                <li><a href="recommendations.html">Recommendations</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="logout.html">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="favorites">
+            <h2>My Favorite Recipes</h2>
+            <div id="favoritesContainer">
+                <p>Loading favorites...</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const userId = 1; 
+
+        async function loadFavorites() {
+            try {
+                const response = await fetch(`/api/getFavorites?userId=${userId}`);
+                const favorites = await response.json();
+                const container = document.getElementById("favoritesContainer");
+
+                container.innerHTML = ""; // Clear loading message
+
+                if (favorites.length === 0) {
+                    container.innerHTML = "<p>No favorite recipes yet.</p>";
+                    return;
+                }
+
+                favorites.forEach(async (favorite) => {
+                    const recipeResponse = await fetch(`/api/getRecipeById?id=${favorite.recipeId}`);
+                    const recipe = await recipeResponse.json();
+
+                    const div = document.createElement("div");
+                    div.classList.add("favorite-item");
+                    div.innerHTML = `
+                        <h3>${recipe.name}</h3>
+                        <p><strong>Cuisine:</strong> ${recipe.cuisine}</p>
+                        <p><strong>Difficulty:</strong> ${recipe.difficulty}</p>
+                        <button onclick="removeFromFavorites('${favorite.favoriteId}')">Remove</button>
+                    `;
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error("Error loading favorites:", error);
+            }
+        }
+
+        // Remove a recipe from favorites
+        async function removeFromFavorites(favoriteId) {
+            try {
+                await fetch(`/api/removeFavorite?favoriteId=${favoriteId}`, { method: 'DELETE' });
+                alert("Recipe removed from favorites!");
+                loadFavorites(); // Refresh the favorites list
+            } catch (error) {
+                console.error("Error removing favorite:", error);
+            }
+        }
+
+        window.onload = loadFavorites;
+    </script>
+
+<script src="/frontend/assets/js/favorite.js"></script>
+</body>
+</html>

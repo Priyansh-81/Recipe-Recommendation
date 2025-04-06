@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>explore</title>
+    <link rel="stylesheet" href="../assets/css/no.css">
+</head>
+
+<body>
+    <header>
+        <h1>Explore...</h1>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Login</a></li>
+                <li><a href="./register.html">Sign-Up</a></li>
+            </ul>
+        </nav> 
+    </header>
+    <section class="search-bar"">
+         <input type="text" id="searchBar" placeholder="Search recipes...">
+    </section>
+    <main>
+        <div class="filters">
+            <label for="cuisine">Cuisine:</label>
+            <select id="cuisine">
+                <option value="all">All</option>
+                <option value="italian">Italian</option>
+                <option value="indian">Indian</option>
+                <option value="mexican">Mexican</option>
+                <option value="chinese">Chinese</option>
+                <option value="japanese">Japanese</option>
+                <option value="french">French</option>
+                <option value="greek">Greek</option>
+                <option value="spanish">Spanish</option>
+                <option value="thai">Thai</option>
+                <option value="korean">Korean</option>
+                <option value="mediterranean">Mediterranean</option>
+                <option value="caribbean">Caribbean</option>
+                <option value="african">African</option>
+            </select>
+            
+            <label for="diet">Diet Type:</label>
+            <select id="diet">
+                <option value="all">All</option>
+                <option value="vegetarian">Vegetarian</option>
+                <option value="vegan">Vegan</option>
+                <option value="non-vegetarian">Non-Vegetarian</option>
+            </select>
+            
+            <label for="difficulty">Difficulty:</label>
+            <select id="difficulty">
+                <option value="all">All</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+        </div>
+        <div id="recipeContainer" class="recipe-grid">
+            
+        </div>
+    </main>
+    <script src="../assets/js/lock-recipe.js"></script>
+</body>
+</html>
