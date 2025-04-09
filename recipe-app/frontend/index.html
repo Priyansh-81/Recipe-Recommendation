@@ -8,13 +8,25 @@
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to Recipe Management System</h1>
-        <p>Discover and manage your favorite recipes with ease.</p>
+        <h1>FlavorBook</h1>
+        <p id="typewriterText"></p>
         <div class="button-container">
             <a href="./pages/login.html" class="btn login-btn">Login</a>
             <a href="./pages/adminlogin.html" class="btn signup-btn">Admin Login</a>
             <a href="./pages/NosigninRecipe.html" class="btn explore-btn">Explore Recipes</a>
         </div>
     </div>
+    <script>
+        const text = "Discover and manage your favorite recipes with ease.";
+        let i = 0;
+        function typeWriter() {
+          if (i < text.length) {
+            document.getElementById("typewriterText").innerHTML += text.charAt(i);
+            i++;
+            setTimeout(typeWriter, 40);
+          }
+        }
+        window.onload = typeWriter;
+      </script>
 </body>
 </html>

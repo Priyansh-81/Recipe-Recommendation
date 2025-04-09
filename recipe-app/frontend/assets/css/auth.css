@@ -1,14 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&display=swap');
+
 /* General Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Quicksand', sans-serif;
 }
 
 /* Page Background */
 body {
-    background-color: #f0f0f0;
+    background: linear-gradient(135deg, #ffe0e0, #ffe9d6);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -19,20 +21,25 @@ body {
 /* Authentication Container */
 .auth-container {
     background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.1);
+    padding: 35px;
+    border-radius: 18px;
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
     text-align: center;
     width: 100%;
-    max-width: 400px;
-    margin: 20px;
+    max-width: 420px;
+    transition: transform 0.3s ease;
+}
+
+.auth-container:hover {
+    transform: translateY(-5px);
 }
 
 /* Header */
 .auth-container h2 {
     margin-bottom: 20px;
     color: #333;
-    font-size: 24px;
+    font-size: 26px;
+    font-weight: 700;
 }
 
 /* Input Fields */
@@ -40,76 +47,133 @@ body {
     width: 100%;
     padding: 12px;
     margin: 12px 0;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 14px;
+    border: 2px solid #f7d3c8;
+    border-radius: 10px;
+    font-size: 15px;
     color: #555;
-    transition: border-color 0.3s ease;
+    transition: all 0.3s ease;
+    background: #fff8f6;
 }
 
 .auth-container input:focus {
     border-color: #f38b72;
+    background: #fff0eb;
     outline: none;
 }
 
 /* Dietary Preferences */
 .auth-container p {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 8px;
+    font-size: 15px;
+    color: #666;
+    margin-bottom: 10px;
+    font-weight: 500;
 }
 
 .auth-container label {
-    display: inline-block;
-    margin-right: 15px;
+    display: inline-flex;
+    align-items: center;
+    margin-right: 12px;
     font-size: 14px;
-    color: #555;
+    color: #444;
+    cursor: pointer;
+    transition: color 0.3s ease;
 }
 
 .auth-container input[type="checkbox"] {
-    margin-right: 5px;
+    margin-right: 6px;
+    accent-color: #f38b72;
 }
 
 /* Buttons */
 .auth-container button {
     width: 100%;
-    padding: 12px;
-    background-color: #f38b72;
+    padding: 13px;
+    background: linear-gradient(135deg, #f38b72, #ffb88c);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s ease;
-    margin-top: 15px;
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .auth-container button:hover {
-    background-color: #e0705d;
+    background: linear-gradient(135deg, #f06a4d, #ffa670);
+    transform: translateY(-2px);
 }
 
 /* Error Message */
 .error-message {
-    color: red;
+    color: #e74c3c;
     font-size: 14px;
     margin-top: 10px;
 }
 
 /* Auth Links */
 .auth-links {
-    margin-top: 15px;
+    margin-top: 20px;
 }
 
 .auth-links p {
     font-size: 14px;
-    color: #555;
+    color: #777;
 }
 
 .auth-links a {
     color: #f38b72;
+    font-weight: 500;
     text-decoration: none;
+    transition: color 0.3s ease;
 }
 
 .auth-links a:hover {
+    color: #e0705d;
     text-decoration: underline;
+}
+/* Fun & Playful Dietary Preferences Section */
+.dietpref {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.dietpref p {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Style checkboxes like pills */
+.dietpref label {
+    display: inline-block;
+    background-color: #ffe5dc;
+    color: #d9534f;
+    padding: 10px 16px;
+    margin: 6px;
+    border-radius: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    user-select: none;
+}
+
+/* Hide actual checkboxes */
+.dietpref input[type="checkbox"] {
+    display: none;
+}
+
+/* Highlight selected pills */
+.dietpref input[type="checkbox"]:checked + label {
+    background-color: #f38b72;
+    color: white;
+    border-color: #e0705d;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(243, 139, 114, 0.3);
+}
+
+/* Hover effect */
+.dietpref label:hover {
+    background-color: #fcded6;
 }

@@ -29,8 +29,24 @@
         <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
         <p><strong>Dietary Preferences:</strong> <span id="userPreferences">Loading...</span></p>
       </div>
-
+      <br>
       <h3>Manage Your Account</h3>
+<div id="changePasswordSection">
+  <h3>Change Password</h3>
+  <form id="changePasswordForm">
+    <label for="oldPassword">Current Password:</label>
+    <input type="password" id="oldPassword" required><br><br>
+
+    <label for="newPassword">New Password:</label>
+    <input type="password" id="newPassword" required><br><br>
+
+    <label for="confirmPassword">Confirm New Password:</label>
+    <input type="password" id="confirmPassword" required><br><br>
+    <button type="submit">Change Password</button>
+  </form>
+  <div id="passwordMessage"></div>
+</div>
+<br>
       <div class="profile-actions">
         <button onclick="toggleEditForm()">Edit Profile</button>
         <button onclick="deleteAccount()">Delete Account</button>
@@ -45,7 +61,12 @@
           <label for="profileEmail">Email:</label>
           <input type="email" id="profileEmail" required><br><br>
           <label for="profilePreferences">Dietary Preferences:</label>
-          <input type="text" id="profilePreferences" required><br><br>
+          <select id="profilePreferences" class="profile-select">
+            <option value="all">All</option>
+            <option value="vegetarian">Vegetarian</option>
+            <option value="vegan">Vegan</option>
+            <option value="non-vegetarian">Non-Vegetarian</option>
+        </select>
           <button type="submit">Save Changes</button>
         </form>
         <div id="profileMessage"></div>
@@ -157,6 +178,55 @@
         updateUserProfile();
       });
     };
+    document.getElementById("changePasswordForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const userID = localStorage.getItem("userID");
+  const oldPassword = document.getElementById("oldPassword").value;
+  const newPassword = document.getElementById("newPassword").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
+  const messageDiv = document.getElementById("passwordMessage");
+
+  if (!userID || !oldPassword || !newPassword || !confirmPassword) {
+    messageDiv.textContent = "Please fill in all fields.";
+    messageDiv.style.color = "red";
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    messageDiv.textContent = "Passwords do not match.";
+    messageDiv.style.color = "red";
+    return;
+  }
+
+  try {
+    const response = await fetch("http://localhost:5001/api/changePassword", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        userID,
+        oldPassword,
+        newPassword
+      })
+    });
+
+    if (response.ok) {
+      messageDiv.textContent = "Password changed successfully!";
+      messageDiv.style.color = "green";
+      document.getElementById("changePasswordForm").reset();
+    } else {
+      const result = await response.json();
+      messageDiv.textContent = result.error || "Failed to change password.";
+      messageDiv.style.color = "red";
+    }
+  } catch (error) {
+    console.error("Error changing password:", error);
+    messageDiv.textContent = "Something went wrong.";
+    messageDiv.style.color = "red";
+  }
+});
   </script>
 </body>
 </html>

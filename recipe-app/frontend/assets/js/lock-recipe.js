@@ -46,7 +46,7 @@ function expand(recipeID) {
     window.location.href = `recipe-detail.html?id=${recipeID}`;
 }
 
-// ✅ Filters now work properly
+
 function setupFilters() {
     document.querySelectorAll("select").forEach(filter => {
         filter.addEventListener("change", async () => {

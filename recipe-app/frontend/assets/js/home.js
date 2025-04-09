@@ -46,19 +46,23 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   
   function loadFeaturedRecipes() {
-    fetch("http://localhost:5001/api/recipes")
+    const userDietType = localStorage.getItem("userPreferences") || "all";
+    const url = userDietType === "all"
+      ? "http://localhost:5001/api/recipes"
+      : `http://localhost:5001/api/recipes/diet/${userDietType}`;
+  
+    fetch(url)
       .then(response => response.json())
       .then(recipes => {
         const container = document.getElementById("featured-recipes");
         container.innerHTML = "";
   
         if (!recipes || recipes.length === 0) {
-          container.innerHTML = "<p>No recipes found.</p>";
+          container.innerHTML = "<p>No recipes found for your preferences.</p>";
           return;
         }
   
         const limited = recipes.slice(0, 5);
-  
         limited.forEach(recipe => {
           const card = document.createElement("div");
           card.classList.add("recipe-card");

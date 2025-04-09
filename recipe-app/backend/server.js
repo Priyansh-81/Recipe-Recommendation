@@ -150,6 +150,25 @@ app.get('/api/recipes/:id', (req, res) => {
   });
 }
 );
+
+// Get recipes by diet type
+app.get('/api/recipes/diet/:dietType', (req, res) => {
+  const { dietType } = req.params;
+
+  const query = 'SELECT * FROM Recipe WHERE LOWER(DietType) = LOWER(?)';
+  db.query(query, [dietType], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Failed to fetch recipes' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'No recipes found for this diet type' });
+    }
+
+    res.status(200).json(results);
+  });
+});
 // Fetch recipes by filter.
 
 // Add new recipe
@@ -426,5 +445,30 @@ app.get('/api/search', (req, res) => {
     }
 
     res.json(results);
+  });
+});
+app.put('/api/changePassword', (req, res) => {
+  const { userID, oldPassword, newPassword } = req.body;
+
+  if (!userID || !oldPassword || !newPassword) {
+    return res.status(400).json({ error: 'Missing fields' });
+  }
+
+  const checkQuery = 'SELECT Password FROM Users WHERE UserID = ?';
+  db.query(checkQuery, [userID], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Server error' });
+    if (results.length === 0) return res.status(404).json({ error: 'User not found' });
+
+    const currentPassword = results[0].Password;
+
+    if (currentPassword !== oldPassword) {
+      return res.status(403).json({ error: 'Incorrect current password' });
+    }
+
+    const updateQuery = 'UPDATE Users SET Password = ? WHERE UserID = ?';
+    db.query(updateQuery, [newPassword, userID], (err) => {
+      if (err) return res.status(500).json({ error: 'Failed to update password' });
+      res.status(200).json({ message: 'Password updated' });
+    });
   });
 });
