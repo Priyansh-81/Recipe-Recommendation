@@ -127,6 +127,7 @@ h1 {
     font-weight: 700;
     background: linear-gradient(90deg, #ff6b6b, #f06595, #36d1dc, #5b86e5);
     background-size: 300% 300%;
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: shimmer 5s ease infinite;
