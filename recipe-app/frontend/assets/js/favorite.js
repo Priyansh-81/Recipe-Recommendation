@@ -2,13 +2,17 @@ document.addEventListener("DOMContentLoaded", () => {
     displayFavorites();
 });
 
-
+// 🟢 Add a recipe to favorites
 async function addToFavorites(recipeId) {
-    const userId = 1; // Example User ID, replace with actual logged-in user ID
+    const userId = localStorage.getItem("userID");
+
+    if (!userId) {
+        alert("Please login to add favorites.");
+        return;
+    }
 
     try {
-        // Send a request to the backend to add the favorite
-        const response = await fetch('/api/addFavorite', {
+        const response = await fetch('http://localhost:5001/api/favorite', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -16,55 +20,74 @@ async function addToFavorites(recipeId) {
             body: JSON.stringify({ userId, recipeId })
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            alert("Recipe added to favorites!");
+            alert(data.message || "Recipe added to favorites!");
         } else {
-            alert("Failed to add recipe to favorites.");
+            alert(data.error || "Failed to add recipe to favorites.");
         }
     } catch (error) {
         console.error("Error adding to favorites:", error);
     }
 }
 
-
+// 🟢 Display all favorite recipes
 async function displayFavorites() {
     const favoriteList = document.querySelector("#favorite-list");
-    if (favoriteList) {
+    const userId = localStorage.getItem("userID");
+
+    if (!userId) {
+        favoriteList.innerHTML = "<p>Please login to view favorites.</p>";
+        return;
+    }
+
+    favoriteList.innerHTML = "<p>Loading favorites...</p>";
+
+    try {
+        const response = await fetch(`http://localhost:5001/api/favorite/${userId}`);
+        const favorites = await response.json();
+
         favoriteList.innerHTML = "";
-        const userId = 1; // Example User ID, replace with actual logged-in user ID
 
-        try {
-            const response = await fetch(`/api/getFavorites?userId=${userId}`);
-            const favorites = await response.json();
-
-            if (favorites.length === 0) {
-                favoriteList.innerHTML = "<p>No favorite recipes yet.</p>";
-                return;
-            }
-
-            for (const favorite of favorites) {
-                const recipeResponse = await fetch(`/api/getRecipeById?id=${favorite.recipeId}`);
-                const recipe = await recipeResponse.json();
-
-                const favItem = document.createElement("div");
-                favItem.classList.add("favorite-item");
-                favItem.innerHTML = `
-                    <h3>${recipe.name}</h3>
-                    <button onclick="removeFromFavorites('${favorite.favoriteId}')">Remove</button>
-                `;
-                favoriteList.appendChild(favItem);
-            }
-        } catch (error) {
-            console.error("Error displaying favorites:", error);
+        if (favorites.length === 0) {
+            favoriteList.innerHTML = "<p>No favorite recipes yet.</p>";
+            return;
         }
+
+        favorites.forEach(recipe => {
+            const favItem = document.createElement("div");
+            favItem.classList.add("favorite-item");
+            favItem.innerHTML = `
+                <h3>${recipe.Name}</h3>
+                <p><strong>Cuisine:</strong> ${recipe.Cuisine}</p>
+                <p><strong>Diet Type:</strong> ${recipe.DietType}</p>
+                <p><strong>Difficulty:</strong> ${recipe.Difficulty}</p>
+                <button onclick="removeFromFavorites(${userId}, ${recipe.RecipeID})">Remove</button>
+            `;
+            favoriteList.appendChild(favItem);
+        });
+    } catch (error) {
+        console.error("Error displaying favorites:", error);
+        favoriteList.innerHTML = "<p>Failed to load favorites.</p>";
     }
 }
 
-async function removeFromFavorites(favoriteId) {
+// 🔴 Remove a favorite
+async function removeFromFavorites(userId, recipeId) {
     try {
-        await fetch(`/api/removeFavorite?favoriteId=${favoriteId}`, { method: 'DELETE' });
-        alert("Recipe removed from favorites!");
-        displayFavorites(); // Refresh the favorites list
+        const response = await fetch(`http://localhost:5001/api/favorite/${userId}/${recipeId}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert(data.message || "Recipe removed from favorites!");
+            displayFavorites(); // Refresh
+        } else {
+            alert(data.error || "Failed to remove favorite.");
+        }
     } catch (error) {
         console.error("Error removing favorite:", error);
     }

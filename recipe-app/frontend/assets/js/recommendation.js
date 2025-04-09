@@ -1,55 +1,88 @@
-// recommendations.js
-
 document.addEventListener("DOMContentLoaded", () => {
-    generateRecommendations();
+    loadRecommendations();
 });
 
-// 🟢 1. Generate Personalized Recommendations
-function generateRecommendations() {
-    const recommendationsContainer = document.querySelector("#recommendations");
-    if (!recommendationsContainer) return;
+function loadRecommendations() {
+    const userId = localStorage.getItem("userID"); // Store this on login
+    const container = document.getElementById("recommendationsContainer");
 
-    recommendationsContainer.innerHTML = "<p>Loading recommendations...</p>";
-
-    let recipes = JSON.parse(localStorage.getItem("recipes")) || [];
-    let userPreferences = JSON.parse(localStorage.getItem("userPreferences")) || [];
-    let userIngredients = JSON.parse(localStorage.getItem("userIngredients")) || [];
-
-    // Filter recipes based on user preferences and available ingredients
-    let recommendedRecipes = recipes.filter(recipe => {
-        return (
-            userPreferences.includes(recipe.cuisine) || 
-            userPreferences.includes(recipe.dietType) || 
-            recipe.ingredients.every(ing => userIngredients.includes(ing))
-        );
-    });
-
-    // Sort recommendations by relevance
-    recommendedRecipes.sort((a, b) => b.relevance - a.relevance);
-
-    // 🟢 2. Display Recommended Recipes
-    displayRecommendations(recommendedRecipes);
-}
-
-// 🟢 3. Display Recommendations in the UI
-function displayRecommendations(recommendedRecipes) {
-    const recommendationsContainer = document.querySelector("#recommendations");
-    recommendationsContainer.innerHTML = "";
-
-    if (recommendedRecipes.length === 0) {
-        recommendationsContainer.innerHTML = "<p>No recommendations found. Try adding preferences or ingredients!</p>";
+    if (!userId) {
+        container.innerHTML = "<p>Please login to see recommendations.</p>";
         return;
     }
 
-    recommendedRecipes.forEach(recipe => {
-        const recipeCard = document.createElement("div");
-        recipeCard.classList.add("recipe-card");
-        recipeCard.innerHTML = `
-            <h3>${recipe.name}</h3>
-            <p><strong>Cuisine:</strong> ${recipe.cuisine}</p>
-            <p><strong>Diet Type:</strong> ${recipe.dietType}</p>
-            <button onclick="addToFavorites(${recipe.id})">Add to Favorites</button>
-        `;
-        recommendationsContainer.appendChild(recipeCard);
+    container.innerHTML = "<p>Loading recommendations...</p>";
+
+    fetch(`http://localhost:5001/api/recommendations/${userId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to fetch recommendations");
+            }
+            return response.json();
+        })
+        .then(recommendations => {
+            container.innerHTML = "";
+
+            if (recommendations.length === 0) {
+                container.innerHTML = "<p>No recommendations available yet.</p>";
+                return;
+            }
+
+            recommendations.forEach(recipe => {
+                const card = document.createElement("div");
+                card.classList.add("recommendation-item");
+                card.innerHTML = `
+                    <h3>${recipe.Name}</h3>
+                    <p><strong>Cuisine:</strong> ${recipe.Cuisine}</p>
+                    <p><strong>Diet Type:</strong> ${recipe.DietType}</p>
+                    <p><strong>Difficulty:</strong> ${recipe.Difficulty}</p>
+                    <p><strong>Score:</strong> ${parseFloat(recipe.RecommendationScore).toFixed(1)}/10</p>
+                    <button onclick="addToFavorites(${recipe.RecipeID}, '${recipe.Name}')">Add to Favorites</button>
+                `;
+                container.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching recommendations:", error);
+            container.innerHTML = "<p>Could not load recommendations. Try again later.</p>";
+        });
+}
+
+function addToFavorites(recipeId, recipeName) {
+    const userId = localStorage.getItem("userID");
+
+    if (!userId) {
+        alert("Please login to add favorites.");
+        return;
+    }
+
+    fetch("http://localhost:5001/api/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, recipeId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || "Added to favorites!");
+    })
+    .catch(err => {
+        console.error("Failed to add favorite:", err);
+        alert("Error adding to favorites.");
     });
 }
+
+    // Option 2 (Recommended): Save to backend using API
+    /*
+    const userId = localStorage.getItem("userID");
+    fetch("http://localhost:5001/api/favorites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, recipeId })
+    })
+    .then(res => res.json())
+    .then(data => alert(data.message))
+    .catch(err => {
+        console.error("Failed to add favorite:", err);
+        alert("Failed to add favorite.");
+    });
+    */

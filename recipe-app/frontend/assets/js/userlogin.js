@@ -30,7 +30,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const data = await response.json();
 
-            if (response.ok) {
+            if (response.ok && data.admin) {
+                const user = data.admin;
+
+                // ✅ Store user info in localStorage for session
+                localStorage.setItem("userID", user.UserID);
+                localStorage.setItem("userName", user.Name);
+                localStorage.setItem("userEmail", user.Email);
+                localStorage.setItem("userRole", "user");
+
                 alert("Login successful!");
                 window.location.href = "home.html";
             } else {

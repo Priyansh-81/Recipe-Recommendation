@@ -18,16 +18,26 @@
                 <li><a href="profile.html">Profile</a></li>
                 <li><a href="logout.html">Logout</a></li>
             </ul>
+        </nav>
     </header>
-    <div class="recipe-details">
-        <p><strong>Cuisine:</strong> <span id="cuisine"></span></p>
-        <p><strong>Diet:</strong> <span id="dietType"></span></p>
-        <p><strong>Difficulty:</strong> <span id="difficulty"></span></p>
-        <p><strong>Cooking Time:</strong> <span id="cookingTime"></span> mins</p>
-        <p><strong>Ingredients:</strong> <span id="ingredients"></span></p>
-        <p><strong>Instructions:</strong> <span id="instructions"></span></p>
-        <button id="backto">Back to Recipes</button>
-    </div>
+
+    <main>
+        <!-- Image Section -->
+        <div class="recipe-image-container">
+            <img id="recipeImage" src="../assets/images/placeholder.jpg" alt="Recipe Image">
+        </div>
+
+        <!-- Details Section -->
+        <div class="recipe-details">
+            <p><strong>Cuisine:</strong> <span id="cuisine"></span></p>
+            <p><strong>Diet:</strong> <span id="dietType"></span></p>
+            <p><strong>Difficulty:</strong> <span id="difficulty"></span></p>
+            <p><strong>Cooking Time:</strong> <span id="cookingTime"></span> mins</p>
+            <p><strong>Ingredients:</strong> <span id="ingredients"></span></p>
+            <p><strong>Instructions:</strong> <span id="instructions"></span></p>
+            <button id="backto">Back to Recipes</button>
+        </div>
+    </main>
 
     <script>
         document.getElementById("backto").onclick = function () {
@@ -53,6 +63,12 @@
                         document.querySelector("#ingredients").textContent = recipe.Ingredients || "No ingredients listed.";
                         document.querySelector("#instructions").textContent = recipe.Instructions || "No instructions provided.";
                         
+                        // Optional: Set image if available
+                        if (recipe.ImageURL) {
+                            document.querySelector("#recipeImage").src = recipe.ImageURL;
+                            document.querySelector("#recipeImage").alt = recipe.Name;
+                        }
+
                         // Set the page title dynamically
                         document.title = (recipe.Name ? recipe.Name + " - Recipe Details" : "Recipe Details");
                     })

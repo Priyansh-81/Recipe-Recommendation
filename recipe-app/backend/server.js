@@ -155,29 +155,47 @@ app.get('/api/recipes/:id', (req, res) => {
 // Add new recipe
 app.post('/api/recipes', async (req, res) => {
   try {
-      console.log("Request body:", req.body); // Log incoming data
+    console.log("Request body:", req.body); // Log incoming data
 
-      const { adminID, name, cuisine, dietType, difficulty, cookingTime, instructions } = req.body;
+    const {
+      adminID,
+      name,
+      cuisine,
+      dietType,
+      difficulty,
+      cookingTime,
+      instructions,
+      imageURL // Optional
+    } = req.body;
 
-      // Ensure all required fields are present
-      if (!adminID || !name || !cuisine || !dietType || !difficulty || !cookingTime || !instructions) {
-          console.error("Missing fields:", req.body);
-          return res.status(400).json({ error: "All fields are required" });
-      }
+    // Ensure all required fields are present
+    if (!adminID || !name || !cuisine || !dietType || !difficulty || !cookingTime || !instructions) {
+      console.error("Missing fields:", req.body);
+      return res.status(400).json({ error: "All fields are required" });
+    }
 
-      const query = `
-          INSERT INTO Recipe (AdminID, Name, Cuisine, DietType, Difficulty, CookingTime, Instructions) 
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-      `;
+    const query = `
+      INSERT INTO Recipe (AdminID, Name, Cuisine, DietType, Difficulty, CookingTime, Instructions, ImageURL)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
 
-      const [result] = await db.execute(query, [adminID, name, cuisine, dietType, difficulty, cookingTime, instructions]);
+    const [result] = await db.promise().execute(query, [
+      adminID,
+      name,
+      cuisine,
+      dietType,
+      difficulty,
+      cookingTime,
+      instructions,
+      imageURL || null
+    ]);
 
-      console.log("Insert result:", result);
+    console.log("Insert result:", result);
 
-      res.status(201).json({ message: "Recipe added successfully", recipeID: result.insertId });
+    res.status(201).json({ message: "Recipe added successfully", recipeID: result.insertId });
   } catch (error) {
-      console.error("Error adding recipe:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error adding recipe:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
@@ -244,4 +262,169 @@ app.put('/api/ingredients/:id', (req, res) => {
 
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
+});
+
+// Recommendations
+// Get recommended recipes for a user
+app.get('/api/recommendations/:userId', (req, res) => {
+  const { userId } = req.params;
+  const query = `
+    SELECT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty, rr.RecommendationScore
+    FROM Recommendation rr
+    JOIN Recipe r ON rr.RecipeID = r.RecipeID
+    WHERE rr.UserID = ?
+    ORDER BY rr.RecommendationScore DESC
+  `;
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching recommendations:', err);
+      return res.status(500).json({ error: 'Failed to fetch recommendations' });
+    }
+    res.status(200).json(results);
+  });
+});
+
+//favorites
+
+// Add recipe to user's favorites
+app.post('/api/favorite', (req, res) => {
+  const { userId, recipeId } = req.body;
+
+  if (!userId || !recipeId) {
+    return res.status(400).json({ error: 'UserID and RecipeID are required.' });
+  }
+
+  // Prevent duplicates
+  const checkQuery = 'SELECT * FROM Favorite WHERE UserID = ? AND RecipeID = ?';
+  db.query(checkQuery, [userId, recipeId], (err, results) => {
+    if (err) {
+      console.error('Error checking favorite:', err);
+      return res.status(500).json({ error: 'Database error.' });
+    }
+
+    if (results.length > 0) {
+      return res.status(409).json({ message: 'Already added to favorites.' });
+    }
+
+    const insertQuery = 'INSERT INTO Favorites (UserID, RecipeID) VALUES (?, ?)';
+    db.query(insertQuery, [userId, recipeId], (err) => {
+      if (err) {
+        console.error('Error inserting favorite:', err);
+        return res.status(500).json({ error: 'Failed to add favorite.' });
+      }
+
+      res.status(201).json({ message: 'Recipe added to favorites!' });
+    });
+  });
+});
+
+app.get('/api/favorites/:userId', (req, res) => {
+  const userId = req.params.userId;
+
+  const sql = `
+    SELECT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty
+    FROM Favorited_by f
+    JOIN Recipe r ON f.RecipeID = r.RecipeID
+    WHERE f.UserID = ?
+  `;
+
+  db.query(sql, [userId], (err, results) => {
+    if (err) {
+      console.error('Error fetching favorites:', err);
+      return res.status(500).json({ error: 'Failed to fetch favorites' });
+    }
+    res.json(results);
+  });
+});
+
+app.delete('/api/favorite/:userId/:recipeId', (req, res) => {
+  const { userId, recipeId } = req.params;
+
+  const query = 'DELETE FROM Favorite WHERE UserID = ? AND RecipeID = ?';
+  db.query(query, [userId, recipeId], (err) => {
+      if (err) {
+          console.error('Error removing favorite:', err);
+          return res.status(500).json({ error: 'Failed to remove favorite.' });
+      }
+      res.status(200).json({ message: 'Recipe removed from favorites.' });
+  });
+});
+
+//profile
+
+
+app.get('/api/profile/:userID', (req, res) => {
+  const userID = req.params.userID;
+  const sql = 'SELECT Name, Email FROM Users WHERE UserID = ?';
+
+  db.query(sql, [userID], (err, result) => {
+    if (err) {
+      console.error("Error fetching profile:", err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(result[0]);
+  });
+});
+
+app.delete('/api/deleteAccount', (req, res) => {
+  const { userID } = req.body;
+
+  if (!userID) return res.status(400).json({ error: "UserID required" });
+
+  const sql = 'DELETE FROM Users WHERE UserID = ?';
+  db.query(sql, [userID], (err) => {
+    if (err) {
+      console.error("Error deleting user:", err);
+      return res.status(500).json({ error: "Could not delete account" });
+    }
+    res.status(200).json({ message: "Account deleted." });
+  });
+});
+app.put('/api/updateProfile', (req, res) => {
+  const { userID, name, email } = req.body;
+
+  if (!userID || !name || !email) {
+    return res.status(400).json({ error: 'Missing fields.' });
+  }
+
+  const updateQuery = 'UPDATE Users SET Name = ?, Email = ? WHERE UserID = ?';
+
+  db.query(updateQuery, [name, email, userID], (err, result) => {
+    if (err) {
+      console.error("Error updating user profile:", err);
+      return res.status(500).json({ error: 'Failed to update profile.' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    res.status(200).json({ message: 'Profile updated successfully!' });
+  });
+});
+
+//home page search 
+app.get('/api/search', (req, res) => {
+  const query = req.query.q;
+  if (!query) return res.status(400).json({ error: "Query is required" });
+
+  const sql = `
+    SELECT Name FROM Recipe WHERE Name LIKE ?
+    UNION
+    SELECT Name FROM Ingredient WHERE Name LIKE ?
+  `;
+
+  const searchTerm = `%${query}%`;
+
+  db.query(sql, [searchTerm, searchTerm], (err, results) => {
+    if (err) {
+      console.error("Search error:", err);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+
+    res.json(results);
+  });
 });
