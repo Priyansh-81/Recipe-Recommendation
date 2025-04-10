@@ -37,46 +37,157 @@
             <p><strong>Instructions:</strong> <span id="instructions"></span></p>
             <button id="backto">Back to Recipes</button>
         </div>
+
+        <!-- Rating Section -->
+        <div class="manage-rating">
+            <h3>Rate this Recipe</h3>
+            <form id="ratingForm">
+                <label for="rating">Rating (1-5):</label>
+                <input type="number" id="rating" name="rating" min="1" max="5" required>
+        
+                <label for="reviewText">Review:</label>
+                <textarea id="reviewText" name="reviewText" placeholder="Write your thoughts..." rows="3"></textarea>
+        
+                <button type="submit">Submit Rating</button>
+            </form>
+        
+            <div id="averageRatingContainer">
+                <h4>Average Rating: <span id="averageRating">Loading...</span></h4>
+            </div>
+        </div>
     </main>
 
+    <!-- JavaScript -->
     <script>
         document.getElementById("backto").onclick = function () {
             window.location.href = "recipe-listing.html";
         };
-
+    
         document.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
             const recipeID = urlParams.get("id");
-
-            if (recipeID) {
-                fetch(`http://localhost:5001/api/recipes/${recipeID}`)
-                    .then(response => {
-                        if (!response.ok) throw new Error("Failed to fetch recipe details");
-                        return response.json();
-                    })
-                    .then(recipe => {
-                        document.querySelector("#recipeName").textContent = recipe.Name || "Recipe Details";
-                        document.querySelector("#cuisine").textContent = recipe.Cuisine || "Unknown";
-                        document.querySelector("#dietType").textContent = recipe.DietType || "N/A";
-                        document.querySelector("#difficulty").textContent = recipe.Difficulty || "N/A";
-                        document.querySelector("#cookingTime").textContent = recipe.CookingTime || "Unknown";
-                        document.querySelector("#ingredients").textContent = recipe.Ingredients || "No ingredients listed.";
-                        document.querySelector("#instructions").textContent = recipe.Instructions || "No instructions provided.";
-                        
-                        // Optional: Set image if available
-                        if (recipe.ImageURL) {
-                            document.querySelector("#recipeImage").src = recipe.ImageURL;
-                            document.querySelector("#recipeImage").alt = recipe.Name;
-                        }
-
-                        // Set the page title dynamically
-                        document.title = (recipe.Name ? recipe.Name + " - Recipe Details" : "Recipe Details");
-                    })
-                    .catch(error => console.error("Error fetching recipe details:", error));
-            } else {
-                console.error("No recipe ID found in the URL.");
+            const userID = localStorage.getItem("userID");
+    
+            if (!userID) {
+                alert("User not logged in.");
+                window.location.href = "login.html";
+                return;
             }
+    
+            if (recipeID) {
+                fetchRecipeDetails(recipeID);
+                fetchAverageRating(recipeID);
+            }
+    
+            document.getElementById("ratingForm").addEventListener("submit", (e) => {
+                e.preventDefault();
+    
+                const rating = document.getElementById("rating").value;
+                const review = document.getElementById("reviewText").value;
+    
+                fetch("http://localhost:5001/api/ratings", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        recipeID: parseInt(recipeID),
+                        userID: parseInt(userID),
+                        rating: parseInt(rating),
+                        reviewText: review
+                    })
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error("Failed to submit rating");
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    alert("Rating submitted successfully!");
+                    fetchAverageRating(recipeID);
+                    document.getElementById("ratingForm").reset();  // Reset the form after submission
+                })
+                .catch(err => {
+                    console.error("Error submitting rating:", err);
+                    alert("Failed to submit rating. Please try again.");
+                });
+            });
         });
+    
+        function fetchRecipeDetails(recipeID) {
+            fetch(`http://localhost:5001/api/recipes/${recipeID}`)
+                .then(response => {
+                    if (!response.ok) throw new Error("Failed to fetch recipe details");
+                    return response.json();
+                })
+                .then(recipe => {
+                    document.querySelector("#recipeName").textContent = recipe.Name || "Recipe Details";
+                    document.querySelector("#cuisine").textContent = recipe.Cuisine || "Unknown";
+                    document.querySelector("#dietType").textContent = recipe.DietType || "N/A";
+                    document.querySelector("#difficulty").textContent = recipe.Difficulty || "N/A";
+                    document.querySelector("#cookingTime").textContent = recipe.CookingTime || "Unknown";
+                    document.querySelector("#instructions").textContent = recipe.Instructions || "No instructions provided.";
+
+                    // Fetch ingredients
+                    fetchIngredients(recipeID);
+
+                    // Handle ImageURL with a fallback to a placeholder
+                    const imageUrl = recipe.ImageURL && isValidImageUrl(recipe.ImageURL)
+                        ? recipe.ImageURL
+                        : "https://raw.githubusercontent.com/Devenified/DBMS_PICTURE/master/IMG-20250410-WA0002.jpg";
+
+                    const recipeImageElement = document.querySelector("#recipeImage");
+                    recipeImageElement.src = imageUrl;
+                    recipeImageElement.alt = recipe.Name || "Recipe Image";
+
+                    // Update page title
+                    document.title = (recipe.Name ? `${recipe.Name} - Recipe Details` : "Recipe Details");
+                })
+                .catch(error => console.error("Error fetching recipe details:", error));
+        }
+
+        function isValidImageUrl(url) {
+            return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
+        }
+
+        function fetchIngredients(recipeID) {
+            fetch(`http://localhost:5001/api/recipes/${recipeID}/ingredients`)  
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to fetch ingredients");
+                    return res.json();
+                })
+                .then(data => {
+                    const ingredientsList = document.getElementById("ingredients");
+                    if (data.length > 0) {
+                        ingredientsList.innerHTML = data.map(ingredient => `<span>${ingredient.Name}</span>`).join(', ');
+                    } else {
+                        ingredientsList.textContent = "No ingredients available.";
+                    }
+                })
+                .catch(err => {
+                    console.error("Error fetching ingredients:", err);
+                    document.getElementById("ingredients").textContent = "No ingredients available.";
+                });
+        }
+    
+        function fetchAverageRating(recipeID) {
+            fetch(`http://localhost:5001/api/ratings/average/${recipeID}`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to fetch average rating");
+                    return res.json();
+                })
+                .then(data => {
+                    const avgRatingElement = document.getElementById("averageRating");
+                    if (data && data.average !== null) {
+                        avgRatingElement.textContent = data.average.toFixed(2);
+                    } else {
+                        avgRatingElement.textContent = "N/A";
+                    }
+                })
+                .catch(err => {
+                    console.error("Error fetching average rating:", err);
+                    document.getElementById("averageRating").textContent = "N/A";
+                });
+        }
     </script>
 </body>
 </html>

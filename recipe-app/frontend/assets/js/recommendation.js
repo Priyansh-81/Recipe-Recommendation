@@ -2,8 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
     loadRecommendations();
 });
 
-function loadRecommendations() {
-    const userId = localStorage.getItem("userID"); // Store this on login
+async function loadRecommendations() {
+    const userId = localStorage.getItem("userID");
     const container = document.getElementById("recommendationsContainer");
 
     if (!userId) {
@@ -13,76 +13,81 @@ function loadRecommendations() {
 
     container.innerHTML = "<p>Loading recommendations...</p>";
 
-    fetch(`http://localhost:5001/api/recommendations/${userId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Failed to fetch recommendations");
-            }
-            return response.json();
-        })
-        .then(recommendations => {
-            container.innerHTML = "";
+    try {
+        const response = await fetch(`http://localhost:5001/api/recommendations/${userId}`);
+        if (!response.ok) throw new Error("Failed to fetch recommendations");
 
-            if (recommendations.length === 0) {
-                container.innerHTML = "<p>No recommendations available yet.</p>";
-                return;
-            }
+        const recommendations = await response.json();
+        container.innerHTML = "";
 
-            recommendations.forEach(recipe => {
-                const card = document.createElement("div");
-                card.classList.add("recommendation-item");
-                card.innerHTML = `
-                    <h3>${recipe.Name}</h3>
-                    <p><strong>Cuisine:</strong> ${recipe.Cuisine}</p>
-                    <p><strong>Diet Type:</strong> ${recipe.DietType}</p>
-                    <p><strong>Difficulty:</strong> ${recipe.Difficulty}</p>
-                    <p><strong>Score:</strong> ${parseFloat(recipe.RecommendationScore).toFixed(1)}/10</p>
-                    <button onclick="addToFavorites(${recipe.RecipeID}, '${recipe.Name}')">Add to Favorites</button>
-                `;
-                container.appendChild(card);
-            });
-        })
-        .catch(error => {
-            console.error("Error fetching recommendations:", error);
-            container.innerHTML = "<p>Could not load recommendations. Try again later.</p>";
+        if (recommendations.length === 0) {
+            container.innerHTML = "<p>No recommendations available yet.</p>";
+            return;
+        }
+
+        recommendations.forEach(recipe => {
+            const card = document.createElement("div");
+            card.classList.add("favorite-item");
+
+            // Use ImageURL or fallback to placeholder
+            const imageUrl = recipe.ImageURL && isValidImageUrl(recipe.ImageURL)
+                ? recipe.ImageURL
+                : "https://raw.githubusercontent.com/Devenified/DBMS_PICTURE/master/IMG-20250410-WA0002.jpg";
+
+            card.innerHTML = `
+                <img src="${imageUrl}" alt="${recipe.Name}" class="recipe-image" />
+                <h3>${recipe.Name}</h3>
+                <p><strong>Cuisine:</strong> ${recipe.Cuisine}</p>
+                <p><strong>Diet Type:</strong> ${recipe.DietType}</p>
+                <p><strong>Difficulty:</strong> ${recipe.Difficulty}</p>
+                <p><strong>Score:</strong> ${recipe.RecommendationScore}/10</p>
+                <button onclick="viewRecipe(${recipe.RecipeID})">View Recipe</button>
+                <button onclick="addToFavorites(${recipe.RecipeID})">Add to Favorites</button>
+            `;
+
+            container.appendChild(card);
         });
+    } catch (error) {
+        console.error("Error fetching recommendations:", error);
+        container.innerHTML = "<p>Could not load recommendations.</p>";
+    }
 }
 
-function addToFavorites(recipeId, recipeName) {
+
+function viewRecipe(recipeId) {
+    window.location.href = `recipe-detail.html?id=${recipeId}`;
+}
+
+async function addToFavorites(recipeId) {
     const userId = localStorage.getItem("userID");
 
     if (!userId) {
-        alert("Please login to add favorites.");
+        alert("Please log in to add recipes to your favorites.");
         return;
     }
 
-    fetch("http://localhost:5001/api/favorites", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, recipeId })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message || "Added to favorites!");
-    })
-    .catch(err => {
-        console.error("Failed to add favorite:", err);
+    const favoriteID = `FAV-${userId}-${recipeId}`;
+
+    try {
+        const res = await fetch("http://localhost:5001/api/favorite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ favoriteID, userId, recipeId }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            alert(data.message || "Added to favorites!");
+        } else {
+            alert(data.error || "Failed to add to favorites. Try again later.");
+        }
+    } catch (err) {
+        console.error("Failed to add to favorites:", err);
         alert("Error adding to favorites.");
-    });
+    }
 }
 
-    // Option 2 (Recommended): Save to backend using API
-    /*
-    const userId = localStorage.getItem("userID");
-    fetch("http://localhost:5001/api/favorites", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, recipeId })
-    })
-    .then(res => res.json())
-    .then(data => alert(data.message))
-    .catch(err => {
-        console.error("Failed to add favorite:", err);
-        alert("Failed to add favorite.");
-    });
-    */
+function isValidImageUrl(url) {
+    return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
+}

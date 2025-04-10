@@ -1,41 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recommendations - Recipe App</title>
-    <link rel="stylesheet" href="../assets/css/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recommendations - Recipe App</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
 </head>
 <body>
-    <header>
-        <h1>Recommendations</h1>
-        <nav>
-            <ul>
-                <li><a href="home.html">Home</a></li>
-                <li><a href="recipe-listing.html">Search Recipes</a></li>
-                <li><a href="favorites.html">Favorites</a></li>
-                <li><a href="recommendations.html" class="active">Recommendations</a></li>
-                <li><a href="profile.html">Profile</a></li>
-                <li><a href="logout.html" ">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
+  <header>
+    <h1>Recommendations</h1>
+    <nav>
+      <ul>
+        <li><a href="home.html">Home</a></li>
+        <li><a href="recipe-listing.html">Search Recipes</a></li>
+        <li><a href="favorites.html">Favorites</a></li>
+        <li><a href="recommendations.html" class="active">Recommendations</a></li>
+        <li><a href="profile.html">Profile</a></li>
+        <li><a href="logout.html">Logout</a></li>
+      </ul>
+    </nav>
+  </header>
 
-    <main>
-        <section class="recommendations">
-            <h2>Recommended Recipes for You</h2>
-            <div id="recommendationsContainer">
-                <p>Loading recommendations...</p>
-            </div>
-        </section>
-    </main>
+  <main>
+    <section class="recommendations">
+      <h2>Recommended Recipes for You</h2>
+      <div id="recommendationsContainer">
+        <p>Loading recommendations...</p>
+      </div>
+    </section>
+  </main>
 
-    <!-- Auth and Recommendation Scripts -->
-    <script src="../assets/js/auth1.js"></script>
-    <script>
-        enforceAuth(); // 🔐 Redirect if not logged in
-    </script>
-
-    <script src="../assets/js/recommendation.js"></script>
+  <!-- JavaScript -->
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/recommendation.js"></script>
 </body>
 </html>

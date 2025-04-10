@@ -140,16 +140,20 @@ app.get('/api/recipes', (req, res) => {
   });
 });
 
+// Fetch a Single Recipe by ID (including ImageURL)
 app.get('/api/recipes/:id', (req, res) => {
   const { id } = req.params;
-  const query = 'SELECT * FROM Recipe WHERE RecipeID = ?';
+  const query = 'SELECT RecipeID, Name, Cuisine, DietType, Difficulty, CookingTime, Instructions, ImageURL FROM Recipe WHERE RecipeID = ?';
+  
   db.query(query, [id], (err, results) => {
     if (err) return res.status(500).json({ error: 'Failed to fetch recipe' });
+    
     if (results.length === 0) return res.status(404).json({ error: 'Recipe not found' });
+
+    // Successfully retrieved recipe, including the image URL
     res.status(200).json(results[0]);
   });
-}
-);
+});
 
 // Get recipes by diet type
 app.get('/api/recipes/diet/:dietType', (req, res) => {
@@ -218,6 +222,31 @@ app.post('/api/recipes', async (req, res) => {
   }
 });
 
+// Example Express route to fetch ingredients for a recipe
+app.get('/api/recipes/:recipeID/ingredients', (req, res) => {
+  const recipeID = req.params.recipeID;
+  const query = `
+      SELECT Ingredient.Name 
+      FROM Includes
+      JOIN Ingredient ON Includes.IngredientID = Ingredient.IngredientID
+      WHERE Includes.RecipeID = ?
+  `;
+  
+  db.query(query, [recipeID], (err, results) => {
+      if (err) {
+          console.error('Error fetching ingredients:', err);
+          return res.status(500).json({ message: 'Error fetching ingredients' });
+      }
+      
+      if (results.length === 0) {
+          console.log(`No ingredients found for recipeID: ${recipeID}`);
+      }
+      // Log the results for debugging
+      console.log("Ingredients found:", results);
+
+      res.json(results);
+  });
+});
 // Delete a recipe
 app.delete('/api/recipes/:id', (req, res) => {
   const { id } = req.params;
@@ -283,66 +312,39 @@ app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
 });
 
-// Recommendations
-// Get recommended recipes for a user
-app.get('/api/recommendations/:userId', (req, res) => {
-  const { userId } = req.params;
-  const query = `
-    SELECT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty, rr.RecommendationScore
-    FROM Recommendation rr
-    JOIN Recipe r ON rr.RecipeID = r.RecipeID
-    WHERE rr.UserID = ?
-    ORDER BY rr.RecommendationScore DESC
-  `;
-  db.query(query, [userId], (err, results) => {
-    if (err) {
-      console.error('Error fetching recommendations:', err);
-      return res.status(500).json({ error: 'Failed to fetch recommendations' });
-    }
-    res.status(200).json(results);
-  });
-});
-
 //favorites
 
 // Add recipe to user's favorites
+// ✅ Add to favorites
 app.post('/api/favorite', (req, res) => {
-  const { userId, recipeId } = req.body;
+  const { favoriteID, userId, recipeId } = req.body;
 
-  if (!userId || !recipeId) {
-    return res.status(400).json({ error: 'UserID and RecipeID are required.' });
+  if (!favoriteID || !userId || !recipeId) {
+    return res.status(400).json({ error: 'FavoriteID, UserID, and RecipeID are required.' });
   }
 
-  // Prevent duplicates
-  const checkQuery = 'SELECT * FROM Favorite WHERE UserID = ? AND RecipeID = ?';
-  db.query(checkQuery, [userId, recipeId], (err, results) => {
+  const query = `
+    INSERT INTO Favorite (FavoriteID, UserID, RecipeID)
+    VALUES (?, ?, ?)
+    ON DUPLICATE KEY UPDATE FavoriteID = FavoriteID;
+  `;
+
+  db.query(query, [favoriteID, userId, recipeId], (err) => {
     if (err) {
-      console.error('Error checking favorite:', err);
-      return res.status(500).json({ error: 'Database error.' });
+      console.error("Add favorite error:", err);
+      return res.status(500).json({ error: "Could not add favorite" });
     }
-
-    if (results.length > 0) {
-      return res.status(409).json({ message: 'Already added to favorites.' });
-    }
-
-    const insertQuery = 'INSERT INTO Favorites (UserID, RecipeID) VALUES (?, ?)';
-    db.query(insertQuery, [userId, recipeId], (err) => {
-      if (err) {
-        console.error('Error inserting favorite:', err);
-        return res.status(500).json({ error: 'Failed to add favorite.' });
-      }
-
-      res.status(201).json({ message: 'Recipe added to favorites!' });
-    });
+    res.status(201).json({ message: "Recipe added to favorites!" });
   });
 });
 
+// ✅ Get all favorites for user
 app.get('/api/favorites/:userId', (req, res) => {
   const userId = req.params.userId;
 
   const sql = `
     SELECT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty
-    FROM Favorited_by f
+    FROM Favorite f
     JOIN Recipe r ON f.RecipeID = r.RecipeID
     WHERE f.UserID = ?
   `;
@@ -356,16 +358,18 @@ app.get('/api/favorites/:userId', (req, res) => {
   });
 });
 
+// 🔴 Remove favorite
 app.delete('/api/favorite/:userId/:recipeId', (req, res) => {
   const { userId, recipeId } = req.params;
 
-  const query = 'DELETE FROM Favorite WHERE UserID = ? AND RecipeID = ?';
+  const query = `DELETE FROM Favorite WHERE UserID = ? AND RecipeID = ?`;
+
   db.query(query, [userId, recipeId], (err) => {
-      if (err) {
-          console.error('Error removing favorite:', err);
-          return res.status(500).json({ error: 'Failed to remove favorite.' });
-      }
-      res.status(200).json({ message: 'Recipe removed from favorites.' });
+    if (err) {
+      console.error("Remove favorite error:", err);
+      return res.status(500).json({ error: "Failed to remove favorite" });
+    }
+    res.status(200).json({ message: "Recipe removed from favorites." });
   });
 });
 
@@ -472,3 +476,361 @@ app.put('/api/changePassword', (req, res) => {
     });
   });
 });
+
+//ratings
+app.post('/api/ratings', (req, res) => {
+  const { rating, reviewText, userID, recipeID } = req.body;
+
+  const query = `
+      INSERT INTO ratings (Rating, ReviewText, UserID, RecipeID)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE Rating = ?, ReviewText = ?;
+  `;
+
+  db.query(query, [rating, reviewText, userID, recipeID, rating, reviewText], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({ message: "Rating submitted/updated successfully!" });
+  });
+});
+
+app.get('/api/ratings/average/:recipeID', (req, res) => {
+  const recipeID = req.params.recipeID;
+
+  const query = `SELECT AVG(Rating) AS average FROM ratings WHERE RecipeID = ?`;
+  db.query(query, [recipeID], (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const avg = results[0].average;
+      res.json({ average: avg !== null ? parseFloat(avg) : 0 });
+  });
+});
+
+// Get all ratings
+app.get("/api/ratings", (req, res) => {
+  db.query("SELECT * FROM ratings", (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Delete a rating
+app.delete("/api/ratings/:ratingID", (req, res) => {
+  const { ratingID } = req.params;
+  db.query("DELETE FROM ratings WHERE RatingID = ?", [ratingID], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: "Rating deleted successfully" });
+  });
+});
+
+app.post('/api/favorite', (req, res) => {
+  const { favoriteID, userId, recipeId } = req.body;
+
+  if (!favoriteID || !userId || !recipeId) {
+    return res.status(400).json({ error: 'FavoriteID, UserID, and RecipeID are required.' });
+  }
+
+  const query = `
+    INSERT INTO Favorite (FavoriteID, UserID, RecipeID)
+    VALUES (?, ?, ?)
+    ON DUPLICATE KEY UPDATE FavoriteID = FavoriteID
+  `;
+
+  db.query(query, [favoriteID, userId, recipeId], (err) => {
+    if (err) {
+      console.error("Add favorite error:", err);
+      return res.status(500).json({ error: "Could not add favorite" });
+    }
+    res.status(201).json({ message: "Recipe added to favorites!" });
+  });
+});
+
+app.put("/api/updateProfile", async (req, res) => {
+  const { userID, name, email, preferences } = req.body;
+
+  try {
+    // Update user details
+    await db.query(
+      "UPDATE users SET Name = ?, Email = ? WHERE UserID = ?",
+      [name, email, userID]
+    );
+
+    // Update preferences in user_pref table
+    await db.query(
+      "INSERT INTO user_pref (UserID, Preferences) VALUES (?, ?) ON DUPLICATE KEY UPDATE Preferences = ?",
+      [userID, preferences, preferences]
+    );
+
+    res.status(200).json({ message: "Profile updated successfully" });
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
+app.get("/api/profile/:userID", async (req, res) => {
+  const { userID } = req.params;
+
+  try {
+    const result = await db.query(
+      "SELECT users.Name, users.Email, user_pref.Preferences FROM users JOIN user_pref ON users.UserID = user_pref.UserID WHERE users.UserID = ?",
+      [userID]
+    );
+
+    if (result.length > 0) {
+      const userProfile = result[0];
+      res.json({
+        Name: userProfile.Name,
+        Email: userProfile.Email,
+        Preferences: userProfile.Preferences,
+      });
+    } else {
+      res.status(404).json({ error: "User not found" });
+    }
+  } catch (err) {
+    console.error("Error fetching user profile:", err);
+    res.status(500).json({ error: "Failed to fetch profile" });
+  }
+});
+
+app.put('/api/updateProfile', async (req, res) => {
+  const { userID, name, email, preferences } = req.body;
+
+  try {
+    // Update the user's profile
+    await db.query('UPDATE users SET Name = ?, Email = ? WHERE UserID = ?', [name, email, userID]);
+
+    // Update the user's preferences in the user_pref table
+    const existingPref = await db.query('SELECT * FROM user_pref WHERE UserID = ?', [userID]);
+
+    if (existingPref.length > 0) {
+      // If preferences already exist, update them
+      await db.query('UPDATE user_pref SET Preferences = ? WHERE UserID = ?', [preferences, userID]);
+    } else {
+      // If no preferences exist, insert new record
+      await db.query('INSERT INTO user_pref (UserID, Preferences) VALUES (?, ?)', [userID, preferences]);
+    }
+
+    res.json({ message: 'Profile updated successfully' });
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/profile/:userID', async (req, res) => {
+  const { userID } = req.params;
+  try {
+    // Fetch user profile details and preferences from the DB
+    const [userProfile] = await db.query('SELECT Name, Email FROM users WHERE UserID = ?', [userID]);
+    const [userPreferences] = await db.query('SELECT Preferences FROM user_pref WHERE UserID = ?', [userID]);
+    
+    if (userProfile.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Send the user profile along with preferences
+    res.json({
+      Name: userProfile[0].Name,
+      Email: userProfile[0].Email,
+      Preferences: userPreferences.length > 0 ? userPreferences[0].Preferences : 'Not set'
+    });
+  } catch (err) {
+    console.error('Error fetching profile:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+app.get('/api/userIngredients/:userId', (req, res) => {
+  const { userId } = req.params;
+  const query = 'SELECT IngredientName FROM userIngredient WHERE UserID = ?';
+
+  db.query(query, [userId], (err, results) => {
+      if (err) {
+          console.error('Error fetching user ingredients:', err);
+          return res.status(500).json({ error: 'Failed to fetch user ingredients.' });
+      }
+      res.status(200).json(results.map(row => row.IngredientName));
+  });
+});
+app.get('/api/recommendRecipes', (req, res) => {
+  const { userId } = req.query;
+
+  // First, fetch user's available ingredients
+  const ingredientQuery = 'SELECT IngredientID FROM userIngredient WHERE UserID = ?';
+  db.query(ingredientQuery, [userId], (err, ingredientResults) => {
+      if (err) {
+          console.error('Error fetching user ingredients:', err);
+          return res.status(500).json({ error: 'Failed to fetch user ingredients.' });
+      }
+
+      const ingredientIDs = ingredientResults.map(row => row.IngredientID);
+
+      if (ingredientIDs.length === 0) {
+          return res.status(404).json({ error: 'No ingredients found for the user.' });
+      }
+
+      // Then, fetch recipes that use these ingredients
+      const recipeQuery = `
+          SELECT DISTINCT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty, r.ImageURL
+          FROM Recipe r
+          JOIN Includes i ON r.RecipeID = i.RecipeID
+          WHERE i.IngredientID IN (${ingredientIDs.join(',')})
+      `;
+
+      db.query(recipeQuery, (err, recipeResults) => {
+          if (err) {
+              console.error('Error fetching recipes:', err);
+              return res.status(500).json({ error: 'Failed to fetch recipes.' });
+          }
+
+          res.status(200).json(recipeResults);
+      });
+  });
+});
+app.get('/api/recommendRecipes', (req, res) => {
+  const { userId } = req.query;
+
+  // First, fetch user's available ingredients
+  const ingredientQuery = 'SELECT IngredientID FROM userIngredient WHERE UserID = ?';
+  db.query(ingredientQuery, [userId], (err, ingredientResults) => {
+      if (err) {
+          console.error('Error fetching user ingredients:', err);
+          return res.status(500).json({ error: 'Failed to fetch user ingredients.' });
+      }
+
+      const ingredientIDs = ingredientResults.map(row => row.IngredientID);
+
+      if (ingredientIDs.length === 0) {
+          return res.status(404).json({ error: 'No ingredients found for the user.' });
+      }
+
+      // Then, fetch recipes that use these ingredients
+      const recipeQuery = `
+          SELECT DISTINCT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty, r.ImageURL
+          FROM Recipe r
+          JOIN Includes i ON r.RecipeID = i.RecipeID
+          WHERE i.IngredientID IN (${ingredientIDs.join(',')})
+      `;
+
+      db.query(recipeQuery, (err, recipeResults) => {
+          if (err) {
+              console.error('Error fetching recipes:', err);
+              return res.status(500).json({ error: 'Failed to fetch recipes.' });
+          }
+
+          res.status(200).json(recipeResults);
+      });
+  });
+});
+
+app.get('/api/recommendRecipes', (req, res) => {
+  const { userId } = req.query;
+
+  // First, fetch user's available ingredients
+  const ingredientQuery = 'SELECT IngredientID FROM userIngredient WHERE UserID = ?';
+  db.query(ingredientQuery, [userId], (err, ingredientResults) => {
+      if (err) {
+          console.error('Error fetching user ingredients:', err);
+          return res.status(500).json({ error: 'Failed to fetch user ingredients.' });
+      }
+
+      const ingredientIDs = ingredientResults.map(row => row.IngredientID);
+
+      if (ingredientIDs.length === 0) {
+          return res.status(404).json({ error: 'No ingredients found for the user.' });
+      }
+
+      // Then, fetch recipes that use these ingredients
+      const recipeQuery = `
+          SELECT DISTINCT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty, r.ImageURL
+          FROM Recipe r
+          JOIN Includes i ON r.RecipeID = i.RecipeID
+          WHERE i.IngredientID IN (${ingredientIDs.join(',')})
+      `;
+
+      db.query(recipeQuery, (err, recipeResults) => {
+          if (err) {
+              console.error('Error fetching recipes:', err);
+              return res.status(500).json({ error: 'Failed to fetch recipes.' });
+          }
+
+          res.status(200).json(recipeResults);
+      });
+  });
+});
+app.get('/api/recommendations/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  // Validate userId
+  if (!userId) {
+      return res.status(400).json({ error: 'User ID is required.' });
+  }
+
+  // Fetch recommended recipes based on user preferences/history
+  const query = `
+    SELECT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty, r.ImageURL,
+           ROUND((RAND() * 10), 1) AS RecommendationScore -- Example scoring logic
+    FROM Recipe r
+    WHERE EXISTS (
+        SELECT 1 FROM Includes i
+        JOIN userIngredient ui ON i.IngredientID = ui.IngredientID
+        WHERE ui.UserID = ?
+        AND i.RecipeID = r.RecipeID
+    )
+    ORDER BY RecommendationScore DESC
+    LIMIT 10;
+  `;
+
+  db.query(query, [userId], (err, results) => {
+      if (err) {
+          console.error('Error fetching recommendations:', err);
+          return res.status(500).json({ error: 'Failed to fetch recommendations.' });
+      }
+
+      if (results.length === 0) {
+          return res.status(404).json({ error: 'No recommendations found.' });
+      }
+
+      res.status(200).json(results);
+  });
+});
+app.post("/api/userIngredients", async (req, res) => {
+  const { userId, ingredientName, quantity } = req.body;
+
+  if (!userId || !ingredientName || !quantity) {
+    return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  try {
+    // Insert into userIngredient table (replace with your database logic)
+    await db.query(
+      "INSERT INTO userIngredient (UserID, IngredientName, Quantity) VALUES (?, ?, ?)",
+      [userId, ingredientName, quantity]
+    );
+
+    res.status(200).json({ message: "Ingredient added successfully." });
+  } catch (error) {
+    console.error("Error adding ingredient:", error);
+    res.status(500).json({ error: "Failed to add ingredient." });
+  }
+});
+app.post("/api/userIngredients", async (req, res) => {
+  const { userId, ingredientName, quantity } = req.body;
+
+  // Validate input
+  if (!userId || !ingredientName || !quantity) {
+    return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  try {
+    // Insert into database (replace with your own logic)
+    await db.query(
+      "INSERT INTO userIngredient (UserID, IngredientName, Quantity) VALUES (?, ?, ?)",
+      [userId, ingredientName, quantity]
+    );
+    res.status(200).json({ message: "Ingredient added successfully." });
+  } catch (error) {
+    console.error("Error adding ingredient:", error);
+    res.status(500).json({ error: "Failed to add ingredient." });
+  }
+});
+

@@ -1,7 +1,6 @@
-/* ============================= */
-/* 🎨 Refined Playful Theme CSS */
-/* ============================= */
-
+/* =================================== */
+/* 🎨 Refined Playful Theme - Global  */
+/* =================================== */
 * {
     margin: 0;
     padding: 0;
@@ -16,7 +15,9 @@
     padding: 20px;
   }
   
-  /* Header */
+  /* ======================= */
+  /* Header & Navigation     */
+  /* ======================= */
   header {
     background: linear-gradient(135deg, #ff90b3, #ffcaa6);
     color: #fff;
@@ -29,7 +30,6 @@
     margin-bottom: 30px;
   }
   
-  /* Navigation */
   nav ul {
     display: flex;
     justify-content: center;
@@ -57,7 +57,9 @@
     transform: scale(1.05);
   }
   
-  /* Buttons */
+  /* ======================= */
+  /* Buttons                 */
+  /* ======================= */
   button {
     background: #00bde4;
     color: white;
@@ -75,7 +77,9 @@
     transform: translateY(-2px);
   }
   
-  /* Search Bar */
+  /* ======================= */
+  /* Search Bar & Results    */
+  /* ======================= */
   .search-bar {
     display: flex;
     justify-content: center;
@@ -97,7 +101,43 @@
     outline: none;
   }
   
-  /* Recipe Cards */
+  /* Search Results Dropdown */
+  .search-results {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    max-height: 250px;
+    overflow-y: auto;
+    display: none;
+  }
+  
+  .search-results ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .search-results li {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .search-results li:hover {
+    background-color: #fcebea;
+  }
+  
+  /* ======================= */
+  /* Recipe Cards & Grid     */
+  /* ======================= */
   .recipe-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -147,7 +187,7 @@
   .recipe-card .view-button {
     margin-top: auto;
     padding: 10px 20px;
-    background-color: #ff90b3;; /* App's main pink */
+    background-color: #ff90b3;
     color: #ffffff;
     font-size: 15px;
     font-weight: 600;
@@ -160,33 +200,12 @@
   }
   
   .recipe-card .view-button:hover {
-    background-color: #ff90b3;; /* Slightly darker pink for hover */
+    background-color: #ff90b3;
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(230, 90, 80, 0.25);
   }
   
-  /* Image Placeholder */
-  .image-placeholder {
-    width: 100%;
-    height: 180px;
-    border-radius: 10px;
-    background-color: #f8d7da;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #a94442;
-    font-size: 14px;
-    font-style: italic;
-  }
-
-  .recipe-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 40px; /* Increased gap between boxes */
-    justify-content: center;
-    padding: 30px;
-  }
-  
+  /* Recipe Item (Home or List View) */
   .recipe-item {
     background-color: #fff;
     border-radius: 12px;
@@ -229,14 +248,13 @@
     margin: 4px 0;
   }
   
-  /* View Button */
   .recipe-item .view-button {
     margin-top: auto;
     align-self: center;
     padding: 8px 14px;
     font-size: 13px;
     font-weight: 500;
-    background-color: #ff90b3;;
+    background-color: #ff90b3;
     color: white;
     border: none;
     border-radius: 6px;
@@ -246,12 +264,49 @@
   }
   
   .recipe-item .view-button:hover {
-    background-color: #ff90b3;;
+    background-color: #ff90b3;
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(230, 90, 80, 0.2);
   }
   
-  /* Recipe Details */
+  /* Image Placeholder */
+  .image-placeholder {
+    width: 100%;
+    height: 180px;
+    border-radius: 10px;
+    background-color: #f8d7da;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #a94442;
+    font-size: 14px;
+    font-style: italic;
+  }
+  
+  /* Recipe Image Container (Large Display) */
+  .recipe-image-container {
+    text-align: center;
+    margin: 20px 0;
+  }
+  
+  .recipe-image-container img {
+    width: 300px;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border: 2px solid #ddd;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .recipe-image-container img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* ======================= */
+  /* Recipe Details         */
+  /* ======================= */
   .recipe-details {
     background-color: #fff;
     padding: 25px;
@@ -270,7 +325,9 @@
     color: #ff4d6d;
   }
   
-  /* Profile Section */
+  /* ======================= */
+  /* Profile & Account      */
+  /* ======================= */
   .profile-container {
     background: #fff;
     padding: 30px;
@@ -308,7 +365,7 @@
     margin-top: 20px;
     flex-wrap: wrap;
   }
-
+  
   .profile-select {
     width: 250px;
     padding: 10px 15px;
@@ -334,6 +391,38 @@
     border-color: #f88d9e;
     box-shadow: 0 0 5px rgba(255, 154, 162, 0.5);
   }
+  
+  #updateProfileForm input[type="text"],
+  #updateProfileForm input[type="email"],
+  #updateProfileForm input[type="password"] {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    font-size: 15px;
+    color: #333;
+    border: 2px solid #ffd9de;
+    border-radius: 10px;
+    background-color: #fffafa;
+    box-shadow: 0 2px 6px rgba(255, 111, 97, 0.05);
+    transition: border-color 0.3s ease, box-shadow 0.2s ease;
+  }
+  
+  #updateProfileForm input:focus {
+    border-color: #ff6f91;
+    outline: none;
+    background-color: #fff;
+    box-shadow: 0 0 8px rgba(255, 111, 145, 0.2);
+  }
+  
+  #updateProfileForm label {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    display: block;
+    color: #444;
+  }
+  
+  /* Change Password Section */
   #changePasswordSection {
     margin-top: 30px;
     padding: 25px;
@@ -387,35 +476,23 @@
     cursor: pointer;
     transition: all 0.3s ease-in-out;
   }
-  #changePasswordForm .button-wrapper {
-    display: flex;
-    justify-content: center;
-  }
-  
-  #changePasswordForm button {
-    background: #00bde4;
-    color: white;
-    padding: 10px 18px;
-    font-size: 14px;
-    font-weight: 500;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-  }
   
   #changePasswordForm button:hover {
     background: #009dc1;
     transform: translateY(-2px);
   }
   
+  /* Message for password change */
   #passwordMessage {
     margin-top: 12px;
     text-align: center;
     font-weight: 600;
     font-size: 14px;
   }
-
+  
+  /* ======================= */
+  /* Filters & Home Section  */
+  /* ======================= */
   .filters {
     display: flex;
     flex-wrap: wrap;
@@ -452,50 +529,201 @@
     box-shadow: 0 0 5px rgba(255, 111, 145, 0.2);
   }
   
- #updateProfileForm input[type="text"],
- #updateProfileForm input[type="email"],
- #updateProfileForm input[type="password"] {
-  width: 100%;
-  padding: 12px 14px;
-  margin-bottom: 18px;
-  font-size: 15px;
-  color: #333;
-  border: 2px solid #ffd9de;
-  border-radius: 10px;
-  background-color: #fffafa;
-  box-shadow: 0 2px 6px rgba(255, 111, 97, 0.05);
-  transition: border-color 0.3s ease, box-shadow 0.2s ease;
-}
-
-#updateProfileForm input:focus {
-  border-color: #ff6f91;
-  outline: none;
-  background-color: #fff;
-  box-shadow: 0 0 8px rgba(255, 111, 145, 0.2);
-}
-#updateProfileForm label {
+  /* ======================= */
+  /* Favorites Section       */
+  /* ======================= */
+  #favorite-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+    padding: 30px;
+  }
+  
+  .favorite-item {
+    background-color: #fff;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    width: 280px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .favorite-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+  }
+  
+  .favorite-item h3 {
+    font-size: 20px;
     font-weight: 600;
+    color: #ff6f91;
+    margin-bottom: 10px;
+  }
+  
+  .favorite-item p {
     font-size: 14px;
-    margin-bottom: 6px;
-    display: block;
-    color: #444;
+    color: #555;
+    margin: 4px 0;
   }
   
-  /* Responsive */
-  @media (max-width: 600px) {
-    .filters {
-      flex-direction: column;
-      align-items: center;
-    }
-  
-    .filters label,
-    .filters select {
-      width: 100%;
-      text-align: left;
-    }
+  .favorite-item button {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background-color: #ff6f91;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
   }
   
-  /* Responsive */
+  .favorite-item button:hover {
+    background-color: #ff4d6d;
+    transform: translateY(-2px);
+  }
+  
+  .favorite-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  
+  .favorite-buttons button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .favorite-buttons button:first-child {
+    background-color: #00bde4;
+    color: white;
+  }
+  
+  .favorite-buttons button:first-child:hover {
+    background-color: #009dc1;
+  }
+  
+  .favorite-buttons button:last-child {
+    background-color: #ff6f91;
+    color: white;
+  }
+  
+  .favorite-buttons button:last-child:hover {
+    background-color: #ff4d6d;
+  }
+  
+
+/* ======================= */
+/* Recommendation Section  */
+/* ======================= */
+
+#recommendation-list {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 30px; 
+    justify-content: center;
+    padding: 30px; 
+  }
+  
+  .recommendation-item {
+    background-color: #fff; 
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    width: 280px;
+    text-align: center; 
+    transition: transform 0.3s ease, box-shadow 0.3s ease; 
+    font-family: 'Poppins', sans-serif; 
+  }
+  
+  .recommendation-item:hover {
+    transform: translateY(-5px); 
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+  }
+  
+  .recommendation-item h3 {
+    font-size: 20px;
+    font-weight: 600; 
+    color: #ff6f91; 
+    margin-bottom: 10px; 
+  }
+  
+  .recommendation-item p {
+    font-size: 14px; /* Font size for paragraph text */
+    color: #555; /* Paragraph text color */
+    margin: 4px 0; /* Margin between paragraphs */
+  }
+  
+  .recommendation-item button {
+      margin-top: 15px; /* Space above the button */
+      padding: 8px 16px; /* Padding inside the button */
+      background-color: #ff6f91; /* Button background color */
+      color: white; /* Button text color */
+      border: none; /* Remove border */
+      border-radius: 8px; /* Rounded corners for buttons */
+      font-weight: 500; /* Font weight for button text */
+      font-family: 'Poppins', sans-serif; /* Font family for button text */
+      cursor: pointer; /* Pointer cursor on hover */
+      transition: background-color .3s ease, transform .2s ease; /* Smooth hover effects */
+  }
+  
+  .recommendation-item button:hover {
+      background-color: #ff4d6d; /* Darker background color on hover */
+      transform: translateY(-2px); /* Slight upward movement on hover */
+  }
+  
+  /* Buttons Group Styling (Optional) */
+  .recommendation-buttons {
+      display: flex;
+      justify-content: center; /* Center-align buttons inside the card */
+      gap: 10px; /* Space between buttons in a group */
+      margin-top: 12px;
+  }
+  
+  .recommendation-buttons button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .3s ease;
+  }
+  
+  .recommendation-buttons button:first-child {
+      background-color: #00bde4;
+      color: white;
+  }
+  
+  .recommendation-buttons button:first-child:hover {
+      background-color: #009dc1;
+  }
+  
+  .recommendation-buttons button:last-child {
+      background-color: #ff6f91;
+      color: white;
+  }
+  
+  .recommendation-buttons button:last-child:hover {
+      background-color: #ff4d6d;
+  }
+  
+
+  /* ======================= */
+  /* Responsive Styles       */
+  /* ======================= */
   @media (max-width: 600px) {
     header {
       font-size: 1.6rem;
@@ -514,55 +742,171 @@
     .recipe-grid {
       gap: 15px;
     }
+  
+    .filters {
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .filters label,
+    .filters select {
+      width: 100%;
+      text-align: left;
+    }
   }
-/*home css*/
-  #featured-recipes ul {
-    margin-top: 10px;
-    padding-left: 0;
+  .manage-rating {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 25px;
+    background-color: #fff0f3;
+    border-left: 4px solid #ff6f91;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(255, 111, 145, 0.08);
+    font-family: 'Poppins', sans-serif;
   }
   
-  #featured-recipes li {
-    background: #fff;
-    margin: 6px 0;
-    padding: 10px 15px;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    transition: background 0.2s;
+  .manage-rating h3 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: #ff4d6d;
+    text-align: center;
+    font-weight: 600;
   }
   
-  #featured-recipes li:hover {
-    background: #fff3f2;
+  #ratingForm {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
+  
+  #ratingForm label {
+    font-weight: 500;
+    color: #444;
+  }
+  
+  #ratingForm input[type="number"],
+  #ratingForm textarea {
+    padding: 12px;
+    font-size: 15px;
+    border: 2px solid #ffd6da;
+    border-radius: 10px;
+    background-color: #fffafa;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  #ratingForm input[type="number"]:focus,
+  #ratingForm textarea:focus {
+    outline: none;
+    border-color: #ff6f91;
+    box-shadow: 0 0 6px rgba(255, 111, 145, 0.2);
+  }
+  
+  #ratingForm button {
+    align-self: center;
+    padding: 10px 20px;
+    background-color: #ff6f91;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  #ratingForm button:hover {
+    background-color: #ff4d6d;
+    transform: translateY(-2px);
+  }
+  
+  #averageRatingContainer {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #333;
+  }
+  
+  #averageRating {
+    font-weight: 700;
+    color: #ffa502;
+  }
+  .rating-stars {
+    color: #ffc107;
+    font-size: 1.2rem;
+    vertical-align: middle;
+}
+/* ================================ */
+/* 🧂 User Ingredient Form Styling 🧂 */
+/* ================================ */
 
-  .search-results {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 500px;
-    background: white;
+#userIngredientForm {
+    max-width: 500px;
+    margin: 50px auto;
+    background-color: #ffffff;
+    padding: 30px 25px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  #userIngredientForm h2 {
+    text-align: center;
+    color: #ff6f91;
+    font-size: 24px;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  
+  #ingredientForm {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  #ingredientForm label {
+    font-size: 14px;
+    color: #444;
+    margin-bottom: 4px;
+  }
+  
+  #ingredientForm input[type="text"],
+  #ingredientForm input[type="number"] {
+    padding: 12px 14px;
+    font-size: 14px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    z-index: 10;
-    max-height: 250px;
-    overflow-y: auto;
-    display: none;
+    background-color: #fafafa;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
   }
-
-  .search-results ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  
+  #ingredientForm input:focus {
+    border-color: #ff6f91;
+    box-shadow: 0 0 0 3px rgba(255, 111, 145, 0.15);
+    outline: none;
   }
-
-  .search-results li {
-    padding: 12px 16px;
-    border-bottom: 1px solid #eee;
+  
+  #ingredientForm button {
+    margin-top: 10px;
+    padding: 12px;
+    background-color: #ff90b3;
+    color: white;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
   }
-
-  .search-results li:hover {
-    background-color: #fcebea;
+  
+  #ingredientForm button:hover {
+    background-color: #ff6f91;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(230, 90, 80, 0.2);
+  }
+  
+  #ingredientMessage {
+    margin-top: 15px;
+    font-size: 14px;
+    text-align: center;
+    color: #444;
   }

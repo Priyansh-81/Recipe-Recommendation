@@ -1,3 +1,4 @@
+/* Base Reset */
 * {
     margin: 0;
     padding: 0;
@@ -10,6 +11,24 @@
     color: #333;
     line-height: 1.6;
     padding: 20px;
+  }
+  
+  /* Utility Classes */
+  .card {
+    background-color: #fff;
+    padding: 25px 30px;
+    border-radius: 16px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  }
+  
+  .btn {
+    padding: 12px 22px;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
   }
   
   /* Header */
@@ -43,8 +62,8 @@
     font-size: 15px;
     color: #ff4d6d;
     text-decoration: none;
-    transition: all 0.3s ease-in-out;
     border: 1.5px solid #ff4d6d;
+    transition: all 0.3s ease-in-out;
   }
   
   nav ul li a:hover {
@@ -53,71 +72,63 @@
     transform: scale(1.05);
   }
   
-
-/* --- SEARCH BAR --- */
-.search-bar {
+  /* Search Bar */
+  .search-bar {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 12px;
     margin: 30px 0;
-}
-
-.search-bar input {
+  }
+  
+  .search-bar input {
     padding: 12px 20px;
     width: 400px;
     border: 2px solid #ff6f61;
     border-radius: 30px;
     font-size: 16px;
     outline: none;
+    background-color: #fff;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.search-bar input:focus {
+  }
+  
+  .search-bar input:focus {
     border-color: #e65a50;
     box-shadow: 0 0 8px rgba(255, 111, 97, 0.3);
-}
-
-.search-bar button {
-    padding: 12px 22px;
-    font-size: 16px;
-    font-weight: 500;
-    border: none;
+  }
+  
+  .search-bar button {
     background: #00bde4;
-    color: white;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.search-bar button:hover {
+    color: #fff;
+  }
+  
+  .search-bar button:hover {
     background: #019ebd;
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(230, 90, 80, 0.2);
-}
-
-
-/* --- FILTERS --- */
-.filters {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Filters */
+  .filters {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
     gap: 18px;
-    margin: 20px auto 40px auto;
+    margin: 20px auto 40px;
     padding: 15px 20px;
     background-color: #fff8f7;
     border-radius: 12px;
-    box-shadow: 0px 4px 10px rgba(255, 111, 97, 0.08);
+    box-shadow: 0 4px 10px rgba(255, 111, 97, 0.08);
     max-width: 800px;
-}
-
-.filters label {
+  }
+  
+  .filters label {
     font-size: 15px;
     font-weight: 500;
     color: #333;
-}
-
-.filters select {
+  }
+  
+  .filters select {
     padding: 10px 14px;
     border: 2px solid #ff6f61;
     border-radius: 8px;
@@ -125,29 +136,29 @@
     background-color: white;
     color: #333;
     transition: border 0.3s ease;
-}
-
-.filters select:focus {
-    border-color: #e65a50;
-    outline: none;
-}
-
-
-.recipe-list {
-    display: flex;
-    flex-direction: column;
-    gap: 60px; /* Increased spacing between recipe cards */
-    padding: 50px 5vw;
-    width: 100%;
-    box-sizing: border-box;
   }
   
-  /* Individual Recipe Card */
+  .filters select:focus {
+    border-color: #e65a50;
+    outline: none;
+  }
+  
+  /* Recipe List */
+  .recipe-list {
+    display: flex;
+    flex-direction: column;
+    gap: 40px; /* Vertical spacing between cards */
+    padding: 0 20px;
+    width: 100vw; /* Full width of the display */
+    max-width: 100%;
+    box-sizing: border-box;
+    align-items: center; /* Center cards on larger screens */
+  }
+  
   .recipe-item {
     width: 100%;
-    max-width: 700px;
-    margin: 0 auto;
-    background-color: #f4bfc9; /* Light pastel base */
+    max-width: 900px; /* Limit card width for readability */
+    background-color: #f4bfc9;
     border-radius: 16px;
     box-shadow: 0 6px 16px rgba(255, 111, 97, 0.08);
     padding: 30px;
@@ -156,7 +167,6 @@
     align-items: flex-start;
     text-align: left;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-sizing: border-box;
   }
   
   .recipe-item:hover {
@@ -164,11 +174,14 @@
     box-shadow: 0 10px 24px rgba(255, 111, 97, 0.15);
   }
   
-  /* Recipe Image */
-  .recipe-item img {
-    width: 100%;
-    max-height: 300px;
-    object-fit: cover;
-    border-radius: 10px;
-    margin-bottom: 16px;
+  /* Optional Responsive Tweak */
+  @media (max-width: 600px) {
+    .search-bar input {
+      width: 100%;
+    }
+  
+    .recipe-item,
+    .filters {
+      padding: 20px;
+    }
   }

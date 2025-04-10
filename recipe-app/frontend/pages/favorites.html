@@ -1,41 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Favorites - Recipe App</title>
-    <link rel="stylesheet" href="../assets/css/styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Favorites - Recipe App</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
 </head>
 <body>
-    <header>
-        <h1>Favorites</h1>
-        <nav>
-            <ul>
-                <li><a href="home.html">Home</a></li>
-                <li><a href="recipe-listing.html">Search Recipes</a></li>
-                <li><a href="favorites.html" class="active">Favorites</a></li>
-                <li><a href="recommendations.html">Recommendations</a></li>
-                <li><a href="profile.html">Profile</a></li>
-                <li><a href="logout.html" >Logout</a></li>
-            </ul>
-        </nav>
-    </header>
+  <header>
+    <h1>Favorites</h1>
+    <nav>
+      <ul>
+        <li><a href="home.html">Home</a></li>
+        <li><a href="recipe-listing.html">Search Recipes</a></li>
+        <li><a href="favorites.html" class="active">Favorites</a></li>
+        <li><a href="recommendations.html">Recommendations</a></li>
+        <li><a href="profile.html">Profile</a></li>
+        <li><a href="logout.html">Logout</a></li>
+      </ul>
+    </nav>
+  </header>
 
-    <main>
-        <section class="favorites">
-            <h2>My Favorite Recipes</h2>
-            <div id="favorite-list">
-                <p>Loading favorites...</p>
-            </div>
-        </section>
-    </main>
+  <main>
+    <section class="favorites">
+      <h2>My Favorite Recipes</h2>
+      <div id="favorite-list">
+        <p>Loading favorites...</p>
+      </div>
+    </section>
+  </main>
 
-    <!-- Auth check + Favorite logic -->
-    <script src="../assets/js/auth.js"></script>
-    <script>
-        enforceAuth(); // 🔐 Make sure the user is logged in
-    </script>
-
-    <script src="../assets/js/favorite.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script>
+    enforceAuth(); 
+  </script>
+  <script src="../assets/js/favorite.js"></script>
 </body>
 </html>
