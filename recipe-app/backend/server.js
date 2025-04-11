@@ -730,200 +730,82 @@ app.get('/api/profile/:userID', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-app.get('/api/userIngredients/:userId', (req, res) => {
-  const { userId } = req.params;
-  const query = 'SELECT IngredientName FROM userIngredient WHERE UserID = ?';
 
-  db.query(query, [userId], (err, results) => {
-      if (err) {
-          console.error('Error fetching user ingredients:', err);
-          return res.status(500).json({ error: 'Failed to fetch user ingredients.' });
-      }
-      res.status(200).json(results.map(row => row.IngredientName));
-  });
-});
+//recommending home page
+// Route 1: Recommend Recipes Based on Ingredients (exact matches)
 app.get('/api/recommendRecipes', (req, res) => {
   const { userId } = req.query;
 
-  // First, fetch user's available ingredients
   const ingredientQuery = 'SELECT IngredientID FROM userIngredient WHERE UserID = ?';
   db.query(ingredientQuery, [userId], (err, ingredientResults) => {
+    if (err) {
+      console.error('Error fetching user ingredients:', err);
+      return res.status(500).json({ error: 'Failed to fetch user ingredients.' });
+    }
+
+    const ingredientIDs = ingredientResults.map(row => row.IngredientID);
+
+    if (ingredientIDs.length === 0) {
+      return res.status(404).json({ error: 'No ingredients found for the user.' });
+    }
+
+    // Dynamically prepare placeholders for IN clause
+    const placeholders = ingredientIDs.map(() => '?').join(',');
+    const recipeQuery = `
+      SELECT DISTINCT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty, r.ImageURL
+      FROM Recipe r
+      JOIN Includes i ON r.RecipeID = i.RecipeID
+      WHERE i.IngredientID IN (${placeholders})
+    `;
+
+    db.query(recipeQuery, ingredientIDs, (err, recipeResults) => {
       if (err) {
-          console.error('Error fetching user ingredients:', err);
-          return res.status(500).json({ error: 'Failed to fetch user ingredients.' });
+        console.error('Error fetching recipes:', err);
+        return res.status(500).json({ error: 'Failed to fetch recipes.' });
       }
 
-      const ingredientIDs = ingredientResults.map(row => row.IngredientID);
-
-      if (ingredientIDs.length === 0) {
-          return res.status(404).json({ error: 'No ingredients found for the user.' });
-      }
-
-      // Then, fetch recipes that use these ingredients
-      const recipeQuery = `
-          SELECT DISTINCT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty, r.ImageURL
-          FROM Recipe r
-          JOIN Includes i ON r.RecipeID = i.RecipeID
-          WHERE i.IngredientID IN (${ingredientIDs.join(',')})
-      `;
-
-      db.query(recipeQuery, (err, recipeResults) => {
-          if (err) {
-              console.error('Error fetching recipes:', err);
-              return res.status(500).json({ error: 'Failed to fetch recipes.' });
-          }
-
-          res.status(200).json(recipeResults);
-      });
-  });
-});
-app.get('/api/recommendRecipes', (req, res) => {
-  const { userId } = req.query;
-
-  // First, fetch user's available ingredients
-  const ingredientQuery = 'SELECT IngredientID FROM userIngredient WHERE UserID = ?';
-  db.query(ingredientQuery, [userId], (err, ingredientResults) => {
-      if (err) {
-          console.error('Error fetching user ingredients:', err);
-          return res.status(500).json({ error: 'Failed to fetch user ingredients.' });
-      }
-
-      const ingredientIDs = ingredientResults.map(row => row.IngredientID);
-
-      if (ingredientIDs.length === 0) {
-          return res.status(404).json({ error: 'No ingredients found for the user.' });
-      }
-
-      // Then, fetch recipes that use these ingredients
-      const recipeQuery = `
-          SELECT DISTINCT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty, r.ImageURL
-          FROM Recipe r
-          JOIN Includes i ON r.RecipeID = i.RecipeID
-          WHERE i.IngredientID IN (${ingredientIDs.join(',')})
-      `;
-
-      db.query(recipeQuery, (err, recipeResults) => {
-          if (err) {
-              console.error('Error fetching recipes:', err);
-              return res.status(500).json({ error: 'Failed to fetch recipes.' });
-          }
-
-          res.status(200).json(recipeResults);
-      });
+      res.status(200).json(recipeResults);
+    });
   });
 });
 
-app.get('/api/recommendRecipes', (req, res) => {
-  const { userId } = req.query;
 
-  // First, fetch user's available ingredients
-  const ingredientQuery = 'SELECT IngredientID FROM userIngredient WHERE UserID = ?';
-  db.query(ingredientQuery, [userId], (err, ingredientResults) => {
-      if (err) {
-          console.error('Error fetching user ingredients:', err);
-          return res.status(500).json({ error: 'Failed to fetch user ingredients.' });
-      }
-
-      const ingredientIDs = ingredientResults.map(row => row.IngredientID);
-
-      if (ingredientIDs.length === 0) {
-          return res.status(404).json({ error: 'No ingredients found for the user.' });
-      }
-
-      // Then, fetch recipes that use these ingredients
-      const recipeQuery = `
-          SELECT DISTINCT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty, r.ImageURL
-          FROM Recipe r
-          JOIN Includes i ON r.RecipeID = i.RecipeID
-          WHERE i.IngredientID IN (${ingredientIDs.join(',')})
-      `;
-
-      db.query(recipeQuery, (err, recipeResults) => {
-          if (err) {
-              console.error('Error fetching recipes:', err);
-              return res.status(500).json({ error: 'Failed to fetch recipes.' });
-          }
-
-          res.status(200).json(recipeResults);
-      });
-  });
-});
+// Route 2: Smarter Recommendations (using random scoring or more advanced logic)
 app.get('/api/recommendations/:userId', (req, res) => {
   const { userId } = req.params;
 
-  // Validate userId
   if (!userId) {
-      return res.status(400).json({ error: 'User ID is required.' });
+    return res.status(400).json({ error: 'User ID is required.' });
   }
 
-  // Fetch recommended recipes based on user preferences/history
   const query = `
     SELECT r.RecipeID, r.Name, r.Cuisine, r.DietType, r.Difficulty, r.ImageURL,
-           ROUND((RAND() * 10), 1) AS RecommendationScore -- Example scoring logic
+           ROUND((RAND() * 10), 1) AS RecommendationScore
     FROM Recipe r
     WHERE EXISTS (
-        SELECT 1 FROM Includes i
-        JOIN userIngredient ui ON i.IngredientID = ui.IngredientID
-        WHERE ui.UserID = ?
-        AND i.RecipeID = r.RecipeID
+      SELECT 1 FROM Includes i
+      JOIN userIngredient ui ON i.IngredientID = ui.IngredientID
+      WHERE ui.UserID = ?
+      AND i.RecipeID = r.RecipeID
     )
     ORDER BY RecommendationScore DESC
     LIMIT 10;
   `;
 
   db.query(query, [userId], (err, results) => {
-      if (err) {
-          console.error('Error fetching recommendations:', err);
-          return res.status(500).json({ error: 'Failed to fetch recommendations.' });
-      }
+    if (err) {
+      console.error('Error fetching recommendations:', err);
+      return res.status(500).json({ error: 'Failed to fetch recommendations.' });
+    }
 
-      if (results.length === 0) {
-          return res.status(404).json({ error: 'No recommendations found.' });
-      }
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'No recommendations found.' });
+    }
 
-      res.status(200).json(results);
+    res.status(200).json(results);
   });
 });
-app.post("/api/userIngredients", async (req, res) => {
-  const { userId, ingredientName, quantity } = req.body;
 
-  if (!userId || !ingredientName || !quantity) {
-    return res.status(400).json({ error: "Missing required fields." });
-  }
-
-  try {
-    // Insert into userIngredient table (replace with your database logic)
-    await db.query(
-      "INSERT INTO userIngredient (UserID, IngredientName, Quantity) VALUES (?, ?, ?)",
-      [userId, ingredientName, quantity]
-    );
-
-    res.status(200).json({ message: "Ingredient added successfully." });
-  } catch (error) {
-    console.error("Error adding ingredient:", error);
-    res.status(500).json({ error: "Failed to add ingredient." });
-  }
-});
-app.post("/api/userIngredients", async (req, res) => {
-  const { userId, ingredientName, quantity } = req.body;
-
-  // Validate input
-  if (!userId || !ingredientName || !quantity) {
-    return res.status(400).json({ error: "Missing required fields." });
-  }
-
-  try {
-    // Insert into database (replace with your own logic)
-    await db.query(
-      "INSERT INTO userIngredient (UserID, IngredientName, Quantity) VALUES (?, ?, ?)",
-      [userId, ingredientName, quantity]
-    );
-    res.status(200).json({ message: "Ingredient added successfully." });
-  } catch (error) {
-    console.error("Error adding ingredient:", error);
-    res.status(500).json({ error: "Failed to add ingredient." });
-  }
-});
 app.post('/api/admin/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -960,7 +842,7 @@ app.post('/api/admin/login', (req, res) => {
   });
 });
 
-// 🟢 Fetch all rows from Includes table (with optional RecipeID filter)
+//  Fetch all rows from Includes table (with optional RecipeID filter)
 app.get('/api/includes', (req, res) => {
   const { recipeID } = req.query; // Optional query parameter to filter by RecipeID
 
@@ -981,7 +863,7 @@ app.get('/api/includes', (req, res) => {
   });
 });
 
-// 🟢 Add or Update a row in Includes table
+//  Add or Update a row in Includes table
 app.post('/api/includes', (req, res) => {
   const { RecipeID, IngredientID, Quantity } = req.body;
   if (!RecipeID || !IngredientID || !Quantity) {
@@ -1002,7 +884,7 @@ db.query(query, [RecipeID, IngredientID, Quantity, Quantity], (err) => {
 });
 });
 
-// 🟢 Delete a row from Includes table
+//  Delete a row from Includes table
 app.delete('/api/includes/:recipeID/:ingredientID', (req, res) => {
 const { recipeID, ingredientID } = req.params;
 
@@ -1055,5 +937,95 @@ app.get('/api/ingredients/search', (req, res) => {
     }
 
     res.json(results);
+  });
+});
+
+app.post('/api/userIngredients', (req, res) => {
+  const { userId, ingredientName, quantity } = req.body;
+
+  if (!userId || !ingredientName || !quantity) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const sql = `
+    INSERT INTO UserIngredient (Quantity, UserID, IngredientID)
+    VALUES (?, ?, (SELECT IngredientID FROM Ingredient WHERE Name = ?))
+  `;
+
+  db.query(sql, [quantity, userId, ingredientName], (err, result) => {
+    if (err) {
+      console.error('Error adding ingredient:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    res.status(201).json({ message: 'Ingredient added successfully', result });
+  });
+});
+
+
+app.get('/api/userIngredients/:userId', (req, res) => {
+  const { userId } = req.params;
+
+  const sql = `
+    SELECT ui.UserIngredientID, ui.Quantity, i.Name AS IngredientName
+    FROM UserIngredient ui
+    JOIN Ingredient i ON ui.IngredientID = i.IngredientID
+    WHERE ui.UserID = ?
+  `;
+
+  db.query(sql, [userId], (err, rows) => {
+    if (err) {
+      console.error('Error fetching user ingredients:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    res.status(200).json(rows);
+  });
+});
+
+app.put('/api/userIngredients/:id', (req, res) => {
+  const { id } = req.params;
+  const { quantity } = req.body;
+
+  if (!quantity) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const sql = `
+    UPDATE UserIngredient SET Quantity = ? WHERE UserIngredientID = ?
+  `;
+
+  db.query(sql, [quantity, id], (err, result) => {
+    if (err) {
+      console.error('Error updating ingredient:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User Ingredient not found' });
+    }
+
+    res.status(200).json({ message: 'Ingredient updated successfully' });
+  });
+});
+
+app.delete('/api/userIngredients/:id', (req, res) => {
+  const { id } = req.params;
+
+  const sql = `
+    DELETE FROM UserIngredient WHERE UserIngredientID = ?
+  `;
+
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('Error deleting ingredient:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User Ingredient not found' });
+    }
+
+    res.status(200).json({ message: 'Ingredient deleted successfully' });
   });
 });

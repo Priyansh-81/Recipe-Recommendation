@@ -33,7 +33,7 @@
     <h2>Recipes You Can Make with Your Ingredients</h2>
     <br>
     <div id="userIngredientForm">
-        <h2>Add Ingredients</h2>
+        <h2>Modify Ingredients</h2>
         <form id="ingredientForm">
           <label for="ingredientName">Ingredient Name:</label>
           <input type="text" id="ingredientName" name="ingredientName" required />
@@ -45,6 +45,12 @@
         </form>
         
         <div id="ingredientMessage"></div> <!-- To display success/error messages -->
+      </div>
+      <div id="userIngredientForm">
+        <h2>Your Ingredients</h2>
+        <div id="ingredientList">
+          <p>Loading ingredients...</p>
+        </div>
       </div>
 
       <br> 
