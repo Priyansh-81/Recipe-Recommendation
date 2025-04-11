@@ -35,7 +35,9 @@ async function loadRecommendations() {
                 : "https://raw.githubusercontent.com/Devenified/DBMS_PICTURE/master/IMG-20250410-WA0002.jpg";
 
             card.innerHTML = `
+                <div class="imagesforrec">
                 <img src="${imageUrl}" alt="${recipe.Name}" class="recipe-image" />
+                </div>
                 <h3>${recipe.Name}</h3>
                 <p><strong>Cuisine:</strong> ${recipe.Cuisine}</p>
                 <p><strong>Diet Type:</strong> ${recipe.DietType}</p>
