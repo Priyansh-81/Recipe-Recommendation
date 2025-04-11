@@ -1038,3 +1038,22 @@ app.get('/api/total-users', (req, res) => {
       });
   });
 });
+
+app.get('/api/ingredients/search', (req, res) => {
+  const name = req.query.name;
+
+  if (!name) {
+    return res.status(400).json({ error: "Missing name query parameter" });
+  }
+
+  const sql = "SELECT IngredientID, Name FROM Ingredient WHERE Name LIKE ? LIMIT 10";
+
+  db.query(sql, [`%${name}%`], (err, results) => {
+    if (err) {
+      console.error("Ingredient Search DB Error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    res.json(results);
+  });
+});

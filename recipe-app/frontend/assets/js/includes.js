@@ -4,18 +4,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById("ingredientSearch");
     const suggestionsBox = document.getElementById("suggestions");
 
-    // Retrieve the recipe ID from URL params
     const urlParams = new URLSearchParams(window.location.search);
     const recipeID = urlParams.get("recipeID");
 
-    // Redirect if no Recipe ID is provided
     if (!recipeID) {
         alert("No Recipe ID provided. Redirecting...");
         window.location.href = "recipe-management.html";
         return;
     }
 
-    // Function to fetch includes data from the backend
     async function fetchIncludesData() {
         try {
             const response = await fetch(`http://localhost:5001/api/includes?recipeID=${recipeID}`);
@@ -28,7 +25,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Function to add a row to the table
     function addRowToTable(rowData = { RecipeID: recipeID, IngredientID: "", Quantity: "" }) {
         const row = document.createElement("tr");
 
@@ -42,14 +38,12 @@ document.addEventListener("DOMContentLoaded", function () {
             </td>
         `;
 
-        // Add event listeners to buttons
         row.querySelector(".save-btn").addEventListener("click", () => saveRow(row));
         row.querySelector(".delete-btn").addEventListener("click", () => deleteRow(row));
 
         tableBody.appendChild(row);
     }
 
-    // Function to save a row to the database
     async function saveRow(row) {
         const recipeID = row.children[0].textContent.trim();
         const ingredientID = row.children[1].textContent.trim();
@@ -77,12 +71,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Function to delete a row from the database
     async function deleteRow(row) {
         const recipeID = row.children[0].textContent.trim();
         const ingredientID = row.children[1].textContent.trim();
 
-        if (!confirm(`Are you sure you want to delete this ingredient (${ingredientID}) from recipe (${recipeID})?`)) return;
+        if (!confirm(`Delete ingredient (${ingredientID}) from recipe (${recipeID})?`)) return;
 
         try {
             const response = await fetch(`http://localhost:5001/api/includes/${recipeID}/${ingredientID}`, {
@@ -100,68 +93,65 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Function to show messages (success or error)
     function showMessage(message, type) {
         const alertDiv = document.createElement("div");
         alertDiv.textContent = message;
         alertDiv.classList.add(type === "success" ? "alert-success" : "alert-error");
         document.body.appendChild(alertDiv);
-        setTimeout(() => alertDiv.remove(), 3000); // Remove message after 3 seconds
+        setTimeout(() => alertDiv.remove(), 3000);
     }
 
-    // Event listener for adding a new row
     addRowBtn.addEventListener("click", () => addRowToTable());
 
-    // --- Dynamic Ingredient Search ---
+    // --- Ingredient Search with Suggestions ---
     if (searchInput) {
         searchInput.addEventListener("input", async () => {
             const query = searchInput.value.trim();
-            if (!query) {
-                suggestionsBox.innerHTML = "";
-                return;
-            }
+            suggestionsBox.innerHTML = "";
 
-            console.log("Searching for:", query); // Log the query to check if it's correct
+            if (!query) return;
 
             try {
                 const response = await fetch(`http://localhost:5001/api/ingredients/search?name=${encodeURIComponent(query)}`);
-                
-                if (!response.ok) {
-                    console.error("Failed to fetch data for ingredients");
-                    return;
-                }
+                if (!response.ok) throw new Error("Failed to fetch ingredient data");
 
                 const ingredients = await response.json();
-                console.log("Search Results:", ingredients); // Log the returned ingredients
-
-                suggestionsBox.innerHTML = ""; // Clear the suggestions box
 
                 if (ingredients.length > 0) {
                     ingredients.forEach(ingredient => {
                         const div = document.createElement("div");
+                        div.className = "suggestion-item";
                         div.textContent = `${ingredient.Name} (ID: ${ingredient.IngredientID})`;
+
                         div.addEventListener("click", () => {
-                            searchInput.value = ingredient.Name;
+                            searchInput.value = "";
                             suggestionsBox.innerHTML = "";
 
-                            // Auto-fill into a new row
                             addRowToTable({
                                 RecipeID: recipeID,
                                 IngredientID: ingredient.IngredientID,
-                                Quantity: "" // Leave quantity for user to fill
+                                Quantity: ""
                             });
                         });
+
                         suggestionsBox.appendChild(div);
                     });
                 } else {
-                    suggestionsBox.innerHTML = "<div>No results found</div>";
+                    suggestionsBox.innerHTML = "<div class='suggestion-item'>No results found</div>";
                 }
             } catch (err) {
                 console.error("Search error:", err);
+                suggestionsBox.innerHTML = "<div class='suggestion-item'>Error fetching results</div>";
+            }
+        });
+
+        // Optional: hide suggestion box on outside click
+        document.addEventListener("click", (e) => {
+            if (!suggestionsBox.contains(e.target) && e.target !== searchInput) {
+                suggestionsBox.innerHTML = "";
             }
         });
     }
 
-    // Fetch and populate the table with initial data
     fetchIncludesData();
 });
