@@ -150,7 +150,31 @@ app.put('/api/users/:id', (req, res) => {
     res.status(200).json({ message: 'User updated successfully.' });
   });
 });
+app.post('/api/users', (req, res) => {
+  const { Name, Email, Password } = req.body;
 
+  if (!Name || !Email || !Password) {
+    return res.status(400).json({ error: 'Name, Email, and Password are required.' });
+  }
+
+  getNextUserID((err, nextUserID) => {
+    if (err) {
+      console.error('Error getting next UserID:', err);
+      return res.status(500).json({ error: 'Failed to generate user ID.' });
+    }
+
+    const insertQuery = 'INSERT INTO Users (UserID, Name, Email, Password) VALUES (?, ?, ?, ?)';
+
+    db.query(insertQuery, [nextUserID, Name, Email, Password], (err, result) => {
+      if (err) {
+        console.error('Error inserting user:', err);
+        return res.status(500).json({ error: 'Failed to add user.' });
+      }
+
+      res.status(201).json({ message: 'User added successfully.', userID: nextUserID });
+    });
+  });
+});
 
 // 🟢 Register a New User
 app.post('/api/register', (req, res) => {
@@ -1028,4 +1052,35 @@ app.delete('/api/userIngredients/:id', (req, res) => {
 
     res.status(200).json({ message: 'Ingredient deleted successfully' });
   });
+});
+
+app.post('/api/users', async (req, res) => {
+  const { Name, Email, Password } = req.body;
+
+  if (!Name || !Email || !Password) {
+      return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  // Save to database (adjust for your DB logic)
+  res.status(201).json({ message: 'User created successfully' });
+});
+
+// POST /api/users
+app.post('/api/users', async (req, res) => {
+  const { Name, Email, Password } = req.body;
+
+  if (!Name || !Email || !Password) {
+      return res.status(400).json({ error: 'Missing fields' });
+  }
+
+  try {
+      const result = await db.query(
+          'INSERT INTO Users (Name, Email, Password) VALUES (?, ?, ?)',
+          [Name, Email, Password]
+      );
+      res.status(201).json({ message: 'User added', userID: result.insertId });
+  } catch (error) {
+      console.error('Error inserting user:', error);
+      res.status(500).json({ error: 'Database error' });
+  }
 });
