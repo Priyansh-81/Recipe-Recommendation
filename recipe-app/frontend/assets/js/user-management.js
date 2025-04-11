@@ -1,25 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
+    fetchUsers();
+
+    // Form submission handler
     const userForm = document.getElementById('userForm');
-    const userTable = document.querySelector('#userTable tbody');
-    const searchBox = document.getElementById('searchBox'); // Search input field
+    userForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        await saveUser();
+    });
 
-    // Fetch Users from Backend
-    async function fetchUsers() {
-        try {
-            const response = await fetch('http://localhost:5001/api/users');
-            const users = await response.json();
-            renderUsers(users);
-        } catch (error) {
-            console.error('Error fetching users:', error);
-        }
-    }
+    // Search functionality
+    document.getElementById('searchBox').addEventListener('keyup', searchUsers);
+});
 
-    // Render Users in the Table
-    function renderUsers(users) {
-        userTable.innerHTML = '';
+// Fetch all users from the backend
+async function fetchUsers() {
+    try {
+        const response = await fetch('http://localhost:5001/api/users');
+        const users = await response.json();
+
+        const userTableBody = document.querySelector('#userTable tbody');
+        userTableBody.innerHTML = '';
+
         users.forEach(user => {
             const row = document.createElement('tr');
-            row.classList.add("user-row"); // Add class for search filtering
             row.innerHTML = `
                 <td>${user.UserID}</td>
                 <td>${user.Name}</td>
@@ -29,84 +32,99 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button onclick="deleteUser(${user.UserID})">Delete</button>
                 </td>
             `;
-            userTable.appendChild(row);
+            userTableBody.appendChild(row);
         });
+    } catch (error) {
+        console.error('Error fetching users:', error);
+    }
+}
+
+// Save (add or update) a user
+async function saveUser() {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!name || !email || !password) {
+        alert('Please fill all required fields.');
+        return;
     }
 
-    // Handle Form Submission (Add or Update User)
-    userForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const userID = document.getElementById('userID').value;
-        const name = document.getElementById('name').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-
-        const endpoint = userID ? `/api/users/${userID}` : '/api/register';
-        const method = userID ? 'PUT' : 'POST';
-
-        try {
-            const response = await fetch(`http://localhost:5001${endpoint}`, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password })
-            });
-
-            if (!response.ok) throw new Error('Error saving user');
-
-            userForm.reset();
-            document.getElementById('userID').value = '';
-            fetchUsers();
-        } catch (error) {
-            console.error('Error saving user:', error);
-        }
-    });
-
-    // Edit User
-    window.editUser = async (id) => {
-        try {
-            const response = await fetch(`http://localhost:5001/api/users/${id}`);
-            const user = await response.json();
-
-            document.getElementById('userID').value = user.UserID;
-            document.getElementById('name').value = user.Name;
-            document.getElementById('email').value = user.Email;
-        } catch (error) {
-            console.error('Error fetching user:', error);
-        }
-    };
-
-    // Delete User
-    window.deleteUser = async (id) => {
-        if (!confirm("Are you sure you want to delete this user?")) return;
-        try {
-            await fetch(`http://localhost:5001/api/users/${id}`, { method: 'DELETE' });
-            fetchUsers();
-        } catch (error) {
-            console.error('Error deleting user:', error);
-        }
-    };
-
-    // Search Users
-    function searchUsers() {
-        const searchTerm = searchBox.value.toLowerCase();
-        const rows = document.querySelectorAll(".user-row");
-
-        rows.forEach((row) => {
-            const userName = row.cells[1].textContent.toLowerCase();
-            const userEmail = row.cells[2].textContent.toLowerCase();
-
-            if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
+    try {
+        const response = await fetch('http://localhost:5001/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ Name: name, Email: email, Password: password }),
         });
+
+        if (!response.ok) throw new Error('Failed to add user');
+
+        alert('User added successfully!');
+        document.getElementById('userForm').reset();
+        fetchUsers(); // Refresh the user list
+    } catch (error) {
+        console.error(error.message);
+        alert(error.message);
     }
+}
 
-    // Attach search event listener
-    searchBox.addEventListener("keyup", searchUsers);
 
-    // Initial Fetch
-    fetchUsers();
-});
+// Edit a user
+async function editUser(userID) {
+    try {
+        const response = await fetch(`http://localhost:5001/api/users/${userID}`);
+        
+        if (!response.ok) throw new Error('Failed to fetch user details');
+
+        const user = await response.json();
+
+        // Populate form with user details for editing
+        document.getElementById('userID').value = user.UserID;
+        document.getElementById('name').value = user.Name;
+        document.getElementById('email').value = user.Email;
+        
+        // Hide password field for editing
+        document.getElementById('password').style.display = 'none';
+        
+        document.querySelector('#userForm button[type="submit"]').textContent = 'Update User';
+    } catch (error) {
+        console.error(error.message);
+        alert(error.message);
+    }
+}
+
+// Delete a user
+async function deleteUser(userID) {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+
+    try {
+        const response = await fetch(`http://localhost:5001/api/users/${userID}`, { method: 'DELETE' });
+
+        if (!response.ok) throw new Error('Failed to delete user');
+
+        alert('User deleted successfully!');
+        
+        // Refresh users list
+        fetchUsers();
+    } catch (error) {
+        console.error(error.message);
+        alert(error.message);
+    }
+}
+
+// Search users in the table
+function searchUsers() {
+    const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+
+    const rows = document.querySelectorAll('#userTable tbody tr');
+
+    rows.forEach(row => {
+       const nameCellText = row.cells[1].textContent.toLowerCase();
+
+       if (nameCellText.includes(searchTerm)) {
+           row.style.display = '';
+       } else {
+           row.style.display = 'none';
+       }
+   });
+}

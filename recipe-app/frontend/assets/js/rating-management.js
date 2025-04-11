@@ -35,7 +35,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                 <td>${rating.Rating}</td>
                 <td>${rating.ReviewText || "-"}</td>
                 <td>
-                    <button onclick="editRating(${index})">Edit</button>
                     <button onclick="deleteRating(${index})">Delete</button>
                 </td>
             `;

@@ -1,10 +1,10 @@
+
 document.addEventListener("DOMContentLoaded", function () {
     const ingredientForm = document.getElementById("ingredient-form");
     const searchBox = document.getElementById("searchBox");
     const ingredientListBody = document.getElementById("ingredient-list-body");
 
-    // Ensure search works when typing
-    searchBox.addEventListener("keyup", searchIngredients);
+    let editingIngredientID = null;
 
     // Fetch ingredients from backend
     async function fetchIngredients() {
@@ -17,15 +17,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Render ingredients in table
+    // Render ingredients
     function renderIngredients(ingredients) {
-        ingredientListBody.innerHTML = ""; // Clear previous entries
-
+        ingredientListBody.innerHTML = "";
         ingredients.forEach((ingredient) => {
-            console.log("Rendering ingredient:", ingredient);
-
             const { IngredientID, Name, NutritionalValue } = ingredient;
-
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${Name}</td>
@@ -36,17 +32,71 @@ document.addEventListener("DOMContentLoaded", function () {
                 </td>`;
             ingredientListBody.appendChild(row);
         });
-
-        searchIngredients(); // Apply search filter after rendering
+        searchIngredients();
     }
 
-    // Search function
+    // Add or update ingredient
+    ingredientForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("name").value.trim();
+        const nutritionalValue = parseFloat(document.getElementById("nutritionalValue").value);
+
+        if (!name || isNaN(nutritionalValue)) return;
+
+        const data = { name, nutritionalValue };
+
+        try {
+            if (editingIngredientID) {
+                // Update existing ingredient
+                await fetch(`http://localhost:5001/api/ingredients/${editingIngredientID}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                editingIngredientID = null;
+            } else {
+                // Create new ingredient
+                await fetch("http://localhost:5001/api/ingredients", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+            }
+            ingredientForm.reset();
+            fetchIngredients();
+        } catch (error) {
+            console.error("Save error:", error);
+        }
+    });
+
+    // Expose edit function globally
+    window.editIngredient = function (id, name, nutritionalValue) {
+        document.getElementById("name").value = name;
+        document.getElementById("nutritionalValue").value = nutritionalValue;
+        editingIngredientID = id;
+    };
+
+    // Delete ingredient
+    window.deleteIngredient = async function (id) {
+        if (confirm("Are you sure you want to delete this ingredient?")) {
+            try {
+                await fetch(`http://localhost:5001/api/ingredients/${id}`, {
+                    method: "DELETE"
+                });
+                fetchIngredients();
+            } catch (error) {
+                console.error("Delete error:", error);
+            }
+        }
+    };
+
+    // Search
+    searchBox.addEventListener("keyup", searchIngredients);
     function searchIngredients() {
         let input = searchBox.value.toLowerCase();
         let rows = document.querySelectorAll("#ingredient-list-body tr");
-
         rows.forEach(row => {
-            let nameCell = row.cells[0]; // First column (Name)
+            let nameCell = row.cells[0];
             if (nameCell) {
                 let nameText = nameCell.textContent.toLowerCase();
                 row.style.display = nameText.includes(input) ? "" : "none";
@@ -54,6 +104,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Initial load
+    // Initial fetch
     fetchIngredients();
 });

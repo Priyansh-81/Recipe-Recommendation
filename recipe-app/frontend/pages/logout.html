@@ -18,6 +18,7 @@
         document.getElementById("logoutBtn").addEventListener("click", function() {
             // Remove session storage or local storage data
             localStorage.removeItem("userToken"); // If you're using JWT
+            localStorage.removeItem("adminProfile");
             sessionStorage.clear(); // Clears all session storage data
 
             // Smooth transition before redirecting

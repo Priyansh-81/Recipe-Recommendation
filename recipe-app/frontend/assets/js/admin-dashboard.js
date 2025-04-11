@@ -1,24 +1,29 @@
-
-console.log("Stored adminProfile:", localStorage.getItem("adminProfile"));
-document.addEventListener("DOMContentLoaded", () => {
-    // Ensure admin session exists
+document.addEventListener("DOMContentLoaded", function () {
+    // Retrieve admin profile from localStorage
     const adminProfile = JSON.parse(localStorage.getItem("adminProfile"));
 
-    if (!adminProfile) {
-        console.error("Admin not logged in. Redirecting...");
-        window.location.href = "../index.html";
-        return;
+    // Validate and display admin details
+    if (adminProfile && adminProfile.name && adminProfile.email) {
+        const nameElement = document.getElementById("admin-name");
+        const emailElement = document.getElementById("admin-email");
+
+        if (nameElement) nameElement.textContent = adminProfile.name;
+        if (emailElement) emailElement.textContent = adminProfile.email;
+    } else {
+        alert("No admin profile found. Please log in again.");
+        window.location.href = "../index.html"; // Redirect to login
     }
 
-    console.log("Admin profile loaded:", adminProfile);
+});
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('http://localhost:5001/api/total-users');
+        const data = await response.json();
 
-    // Display Admin Info
-    document.getElementById("admin-name").textContent = adminProfile.name || "Admin";
-    document.getElementById("admin-email").textContent = adminProfile.email || "N/A";
-
-    // Logout Functionality
-    document.getElementById("logout-btn").addEventListener("click", () => {
-        localStorage.removeItem("adminProfile"); // Clear session
-        window.location.href = "../index.html"; // Redirect to login
-    });
+        // Display total number of users
+        document.getElementById('total-users').textContent = data.totalUsers;
+    } catch (error) {
+        console.error('Error fetching total users:', error);
+        document.getElementById('total-users').textContent = 'Error';
+    }
 });

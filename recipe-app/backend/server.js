@@ -80,30 +80,77 @@ const getNextUserID = (callback) => {
     callback(null, nextUserID);
   });
 };
-
-// 🟢 Get All Users
 app.get('/api/users', (req, res) => {
-  db.query('SELECT UserID, Name, Email FROM Users', (err, results) => {
+  const query = 'SELECT UserID, Name, Email FROM Users';
+
+  db.query(query, (err, results) => {
     if (err) {
       console.error('Error fetching users:', err);
       return res.status(500).json({ error: 'Failed to fetch users.' });
     }
+
     res.status(200).json(results);
   });
 });
-
-// 🟢 Get a Single User by ID
 app.get('/api/users/:id', (req, res) => {
   const { id } = req.params;
-  db.query('SELECT UserID, Name, Email FROM Users WHERE UserID = ?', [id], (err, results) => {
+  const query = 'SELECT UserID, Name, Email FROM Users WHERE UserID = ?';
+
+  db.query(query, [id], (err, results) => {
     if (err) {
       console.error('Error fetching user:', err);
       return res.status(500).json({ error: 'Failed to fetch user.' });
     }
-    if (results.length === 0) return res.status(404).json({ error: 'User not found.' });
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
     res.status(200).json(results[0]);
   });
 });
+app.delete('/api/users/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM Users WHERE UserID = ?';
+
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error('Error deleting user:', err);
+      return res.status(500).json({ error: 'Failed to delete user.' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    res.status(200).json({ message: 'User deleted successfully.' });
+  });
+});
+app.put('/api/users/:id', (req, res) => {
+  const { id } = req.params;
+  const { Name, Email } = req.body;
+
+  // Validate input
+  if (!Name || !Email) {
+    return res.status(400).json({ error: 'Name and Email are required.' });
+  }
+
+  const query = 'UPDATE Users SET Name = ?, Email = ? WHERE UserID = ?';
+
+  db.query(query, [Name, Email, id], (err, result) => {
+    if (err) {
+      console.error('Error updating user:', err);
+      return res.status(500).json({ error: 'Failed to update user.' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    res.status(200).json({ message: 'User updated successfully.' });
+  });
+});
+
 
 // 🟢 Register a New User
 app.post('/api/register', (req, res) => {
@@ -247,6 +294,40 @@ app.get('/api/recipes/:recipeID/ingredients', (req, res) => {
       res.json(results);
   });
 });
+// Update a recipe by ID
+app.put('/api/recipes/:id', async (req, res) => {
+  const recipeID = req.params.id;
+  const {
+    adminID,
+    name,
+    cuisine,
+    dietType,
+    difficulty,
+    cookingTime,
+    instructions,
+    imageURL
+  } = req.body;
+
+  try {
+    const [result] = await db.promise().execute(
+      `UPDATE Recipe 
+       SET AdminID = ?, Name = ?, Cuisine = ?, DietType = ?, Difficulty = ?, 
+           CookingTime = ?, Instructions = ?, ImageURL = ?
+       WHERE RecipeID = ?`,
+      [adminID, name, cuisine, dietType, difficulty, cookingTime, instructions, imageURL || null, recipeID]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Recipe not found" });
+    }
+
+    res.json({ message: "Recipe updated successfully" });
+  } catch (error) {
+    console.error("Update error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+;
 // Delete a recipe
 app.delete('/api/recipes/:id', (req, res) => {
   const { id } = req.params;
@@ -261,51 +342,61 @@ app.delete('/api/recipes/:id', (req, res) => {
 
 
 
-app.get('/api/ingredients', (req, res) => {
-  const query = 'SELECT * FROM Ingredient';
-  db.query(query, (err, results) => {
-    if (err) return res.status(500).json({ error: 'Failed to fetch recipes' });
-    res.status(200).json(results);
-  });
-});
-
-
 // Add new ingredient
-app.post('/api/ingredients', (req, res) => {
+app.post('/api/ingredients', async (req, res) => {
   const { name, nutritionalValue } = req.body;
-
-  if (!name || !nutritionalValue) {
-    return res.status(400).json({ error: 'All fields are required!' });
+  try {
+      const [result] = await db.promise().execute(
+          "INSERT INTO Ingredient (Name, NutritionalValue) VALUES (?, ?)",
+          [name, nutritionalValue]
+      );
+      res.status(201).json({ message: "Ingredient added", id: result.insertId });
+  } catch (error) {
+      console.error("Add error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
   }
-
-  const query = 'INSERT INTO Ingredients (Name, NutritionalValue) VALUES (?, ?)';
-  db.query(query, [name, nutritionalValue], (err) => {
-    if (err) {
-      console.error('Error inserting ingredient:', err);
-      return res.status(500).json({ error: 'Failed to add ingredient.' });
-    }
-    res.status(201).json({ message: 'Ingredient added successfully!' });
-  });
-});
-// Update an ingredient
-app.put('/api/ingredients/:id', (req, res) => {
-  const { id } = req.params;
-  const { name, nutritionalValue } = req.body;
-
-  if (!name || !nutritionalValue) {
-    return res.status(400).json({ error: 'All fields are required!' });
-  }
-
-  const query = 'UPDATE Ingredients SET Name = ?, NutritionalValue = ? WHERE IngredientID = ?';
-  db.query(query, [name, nutritionalValue, id], (err) => {
-    if (err) {
-      console.error('Error updating ingredient:', err);
-      return res.status(500).json({ error: 'Failed to update ingredient.' });
-    }
-    res.status(200).json({ message: 'Ingredient updated successfully!' });
-  });
 });
 
+// Get all ingredients
+app.get('/api/ingredients', async (req, res) => {
+  try {
+      const [rows] = await db.promise().query("SELECT * FROM Ingredient");
+      res.json(rows);
+  } catch (error) {
+      console.error("Fetch error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Update ingredient
+app.put('/api/ingredients/:id', async (req, res) => {
+  const id = req.params.id;
+  const { name, nutritionalValue } = req.body;
+  try {
+      const [result] = await db.promise().execute(
+          "UPDATE Ingredient SET Name = ?, NutritionalValue = ? WHERE IngredientID = ?",
+          [name, nutritionalValue, id]
+      );
+      if (result.affectedRows === 0) return res.status(404).json({ error: "Ingredient not found" });
+      res.json({ message: "Ingredient updated" });
+  } catch (error) {
+      console.error("Update error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// Delete ingredient
+app.delete('/api/ingredients/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+      const [result] = await db.promise().execute("DELETE FROM Ingredient WHERE IngredientID = ?", [id]);
+      if (result.affectedRows === 0) return res.status(404).json({ error: "Ingredient not found" });
+      res.json({ message: "Ingredient deleted" });
+  } catch (error) {
+      console.error("Delete error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 //Ingredient Management
 
 app.listen(port, () => {
@@ -833,4 +924,117 @@ app.post("/api/userIngredients", async (req, res) => {
     res.status(500).json({ error: "Failed to add ingredient." });
   }
 });
+app.post('/api/admin/login', (req, res) => {
+  const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Please provide both email and password.' });
+  }
+
+  const query = 'SELECT * FROM admin WHERE Email = ?';
+  db.query(query, [email], (err, results) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Internal server error.' });
+    }
+
+    if (results.length === 0) {
+      return res.status(401).json({ error: 'Invalid credentials.' });
+    }
+
+    const admin = results[0];
+    console.log("✅ Found admin:", admin); // Debug
+
+    if (admin.Password !== password) {
+      return res.status(401).json({ error: 'Invalid credentials.' });
+    }
+
+    const adminProfile = {
+      adminID: admin.AdminID,
+      name: admin.Name,
+      email: admin.Email,
+    };
+
+    console.log("✅ Sending to frontend:", adminProfile);
+    return res.status(200).json(adminProfile);
+  });
+});
+
+// 🟢 Fetch all rows from Includes table (with optional RecipeID filter)
+app.get('/api/includes', (req, res) => {
+  const { recipeID } = req.query; // Optional query parameter to filter by RecipeID
+
+  let query = 'SELECT * FROM Includes';
+  const params = [];
+
+  if (recipeID) {
+      query += ' WHERE RecipeID = ?';
+      params.push(recipeID);
+  }
+
+  db.query(query, params, (err, results) => {
+      if (err) {
+          console.error('Error fetching includes data:', err);
+          return res.status(500).json({ error: 'Failed to fetch includes data' });
+      }
+      res.status(200).json(results);
+  });
+});
+
+// 🟢 Add or Update a row in Includes table
+app.post('/api/includes', (req, res) => {
+  const { RecipeID, IngredientID, Quantity } = req.body;
+  if (!RecipeID || !IngredientID || !Quantity) {
+    return res.status(400).json({ error: 'All fields are required' });
+}
+
+const query = `
+    INSERT INTO Includes (RecipeID, IngredientID, Quantity)
+    VALUES (?, ?, ?)
+    ON DUPLICATE KEY UPDATE Quantity = ?
+`;
+db.query(query, [RecipeID, IngredientID, Quantity, Quantity], (err) => {
+    if (err) {
+        console.error('Error saving row:', err);
+        return res.status(500).json({ error: 'Failed to save row' });
+    }
+    res.status(201).json({ message: 'Row saved successfully!' });
+});
+});
+
+// 🟢 Delete a row from Includes table
+app.delete('/api/includes/:recipeID/:ingredientID', (req, res) => {
+const { recipeID, ingredientID } = req.params;
+
+const query = 'DELETE FROM Includes WHERE RecipeID = ? AND IngredientID = ?';
+db.query(query, [recipeID, ingredientID], (err) => {
+          if (err) {
+            console.error('Error deleting row:', err);
+            return res.status(500).json({ error: 'Failed to delete row' });
+        }
+        res.status(200).json({ message: 'Row deleted successfully!' });
+    });
+});
+
+// Fetch the latest total users
+// Fetch total number of users using SQL procedure
+app.get('/api/total-users', (req, res) => {
+  // Step 1: Call the procedure
+  db.query('CALL GetTotalUsers(@totalUsers)', (err) => {
+      if (err) {
+          console.error('Error calling procedure:', err);
+          return res.status(500).json({ error: 'Failed to call procedure' });
+      }
+
+      // Step 2: Retrieve the OUT parameter
+      db.query('SELECT @totalUsers AS TotalUsers', (err, results) => {
+          if (err) {
+              console.error('Error fetching total users:', err);
+              return res.status(500).json({ error: 'Failed to fetch total users' });
+          }
+
+          const totalUsers = results[0].TotalUsers; // Extract result from query
+          res.status(200).json({ totalUsers });
+      });
+  });
+});

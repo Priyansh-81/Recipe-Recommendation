@@ -3,17 +3,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const loginError = document.getElementById("login-error");
 
     if (!loginForm) {
-        console.error("Login form not found. Check the form ID in HTML.");
+        console.error("Login form not found.");
         return;
     }
 
     loginForm.addEventListener("submit", async function (event) {
-        event.preventDefault(); // Prevent form submission
+        event.preventDefault(); // Prevent default form submission
 
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
 
-        // Reset error message
+        // Clear previous errors
         loginError.textContent = "";
         loginError.style.display = "none";
 
@@ -31,25 +31,26 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             const data = await response.json();
+            console.log("✅ Server Response:", data);
 
-            if (response.ok) {
-                // Ensure admin data is stored consistently as an object
+            if (response.ok && data.admin) {
+                // Extract and store admin profile from nested object
                 const adminProfile = {
-                    adminID: data.adminID,
-                    name: data.name,
-                    email: data.email,
+                    adminID: data.admin.AdminID,
+                    name: data.admin.Name,
+                    email: data.admin.Email,
                 };
 
                 localStorage.setItem("adminProfile", JSON.stringify(adminProfile));
 
                 alert("Login successful!");
-                window.location.href = "admin-dashboard.html"; // Redirect to dashboard
+                window.location.href = "admin-dashboard.html";
             } else {
                 loginError.textContent = data.error || "Invalid credentials.";
                 loginError.style.display = "block";
             }
         } catch (error) {
-            console.error("Error:", error);
+            console.error("Fetch error:", error);
             loginError.textContent = "Server error. Please try again later.";
             loginError.style.display = "block";
         }
