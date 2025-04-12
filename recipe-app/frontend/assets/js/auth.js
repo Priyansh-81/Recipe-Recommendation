@@ -13,6 +13,15 @@ document.addEventListener("DOMContentLoaded", function () {
         registerError.textContent = "";
         registerError.style.display = "none";
 
+        // ✅ Email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            registerError.textContent = "Please enter a valid email address.";
+            registerError.style.display = "block";
+            return;
+        }
+
+        // ✅ Password match check
         if (password !== confirmPassword) {
             registerError.textContent = "Passwords do not match!";
             registerError.style.display = "block";
